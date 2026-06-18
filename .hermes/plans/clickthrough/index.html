@@ -1,0 +1,2278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>North London Coffee Co. — Click-through Prototype</title>
+<style>
+  /* ---------- Wireframe tokens ---------- */
+  :root {
+    --bg: #f4f4f1;
+    --paper: #ffffff;
+    --ink: #1a1a1a;
+    --ink-2: #4a4a4a;
+    --ink-3: #7a7a7a;
+    --line: #d8d8d2;
+    --line-2: #e8e8e2;
+    --accent: #2b3a55;        /* deep navy — coffee professional */
+    --accent-2: #b07a3c;      /* warm caramel — coffee accent */
+    --ok: #2f6b3a;
+    --warn: #a8631a;
+    --bad: #9b2c2c;
+    --note-bg: #fff8e6;
+    --note-line: #d6c181;
+    --screen: 1180px;
+    --radius: 6px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ---------- Top banner (cover) ---------- */
+  .cover {
+    max-width: var(--screen);
+    margin: 0 auto;
+    padding: 60px 40px 40px;
+  }
+  .cover h1 { font-size: 32px; margin: 0 0 8px; letter-spacing: -0.01em; }
+  .cover .sub { color: var(--ink-2); font-size: 16px; max-width: 720px; line-height: 1.55; }
+  .cover .meta { margin-top: 32px; display: flex; gap: 32px; flex-wrap: wrap; color: var(--ink-3); font-size: 13px; }
+  .cover .meta b { color: var(--ink); font-weight: 600; }
+  .toc {
+    margin-top: 32px;
+    border-top: 1px solid var(--line);
+    padding-top: 24px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px;
+  }
+  .toc h3 { font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-3); margin: 0 0 8px; }
+  .toc ol { padding-left: 20px; margin: 0; }
+  .toc li { margin: 4px 0; }
+  .toc li a { color: var(--ink-2); }
+
+  /* ---------- Screen frame ---------- */
+  .frame {
+    max-width: var(--screen);
+    margin: 32px auto;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .frame-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--line);
+    background: #fafaf7;
+  }
+  .frame-head .id { font-size: 12px; color: var(--ink-3); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .frame-head .title { font-size: 15px; font-weight: 600; }
+  .frame-head .step { font-size: 12px; color: var(--ink-3); }
+  .frame-body { padding: 20px; }
+  .frame-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px;
+    border-top: 1px solid var(--line-2);
+    background: #fafaf7;
+    font-size: 12px;
+    color: var(--ink-3);
+  }
+  .nav-btn {
+    display: inline-block; padding: 6px 12px; border: 1px solid var(--line);
+    border-radius: 4px; color: var(--ink-2); background: var(--paper);
+    font-size: 12px;
+  }
+  .nav-btn:hover { background: #f0f0eb; text-decoration: none; }
+
+  /* ---------- Wireframe primitives ---------- */
+  /* Top app bar (shown on every screen) */
+  .appbar {
+    display: flex; align-items: center; gap: 24px;
+    padding: 10px 16px;
+    background: var(--accent); color: #fff;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .appbar .logo { font-weight: 700; letter-spacing: 0.02em; }
+  .appbar nav { display: flex; gap: 18px; flex: 1; }
+  .appbar nav a { color: #cdd5e0; }
+  .appbar nav a.active { color: #fff; font-weight: 600; }
+  .appbar .me { color: #cdd5e0; font-size: 12px; }
+
+  /* Page header inside the app */
+  .page-h { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+  .page-h h2 { margin: 0; font-size: 20px; }
+  .page-h .crumb { color: var(--ink-3); font-size: 12px; }
+
+  /* Generic box */
+  .box { border: 1px solid var(--line); border-radius: 4px; padding: 12px; background: #fdfdfb; }
+  .box.tight { padding: 8px; }
+  .box h4 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); }
+
+  /* Form fields */
+  label.f { display: block; font-size: 12px; color: var(--ink-2); margin-bottom: 4px; }
+  .input, .select, textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font: inherit;
+    background: var(--paper);
+    color: var(--ink);
+  }
+  .input:focus, .select:focus, textarea:focus { outline: 2px solid #99b3d6; outline-offset: -1px; }
+  .row { display: grid; gap: 12px; }
+  .row.c2 { grid-template-columns: 1fr 1fr; }
+  .row.c3 { grid-template-columns: 1fr 1fr 1fr; }
+  .row.c4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+  .row.c12 { grid-template-columns: 1fr 2fr; }
+  .row.c13 { grid-template-columns: 1fr 3fr; }
+
+  /* Buttons */
+  .btn {
+    display: inline-block; padding: 8px 14px; border-radius: 4px; font: inherit; cursor: pointer;
+    border: 1px solid var(--accent); background: var(--accent); color: #fff;
+  }
+  .btn.secondary { background: var(--paper); color: var(--accent); }
+  .btn.ghost { background: transparent; border-color: var(--line); color: var(--ink-2); }
+  .btn.danger { background: var(--bad); border-color: var(--bad); }
+  .btn.small { padding: 4px 10px; font-size: 12px; }
+  .btn[disabled] { opacity: 0.5; cursor: not-allowed; }
+
+  /* Table */
+  table.t { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.t th, table.t td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line-2); vertical-align: top; }
+  table.t th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink-3); font-weight: 600; }
+  table.t tr:hover td { background: #fafaf5; }
+
+  /* Pills / tags */
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
+  .pill.ok { background: #e6f1e7; color: var(--ok); }
+  .pill.warn { background: #fbeede; color: var(--warn); }
+  .pill.bad { background: #f7e0e0; color: var(--bad); }
+  .pill.info { background: #e0e6f0; color: var(--accent); }
+  .pill.neutral { background: #ececea; color: var(--ink-2); }
+
+  /* Two-column page */
+  .cols { display: grid; gap: 16px; }
+  .cols.c12 { grid-template-columns: 280px 1fr; }
+  .cols.c13 { grid-template-columns: 220px 1fr; }
+  .cols.c23 { grid-template-columns: 2fr 1fr; }
+  .cols.c21 { grid-template-columns: 2fr 1fr; }
+
+  /* Banners / callouts */
+  .banner { padding: 10px 12px; border-radius: 4px; font-size: 13px; margin-bottom: 12px; }
+  .banner.info { background: #e8edf5; border: 1px solid #c4cee0; color: var(--accent); }
+  .banner.warn { background: #fbf2e1; border: 1px solid var(--note-line); color: var(--warn); }
+  .banner.bad { background: #f7e0e0; border: 1px solid #e0b0b0; color: var(--bad); }
+  .banner.ok { background: #e6f1e7; border: 1px solid #b0d3b6; color: var(--ok); }
+
+  /* Card */
+  .card { border: 1px solid var(--line); border-radius: 4px; padding: 12px; background: var(--paper); }
+  .card h3 { margin: 0 0 6px; font-size: 14px; }
+  .card .meta { color: var(--ink-3); font-size: 12px; }
+
+  /* Stat */
+  .stat { display: flex; align-items: baseline; gap: 6px; }
+  .stat .v { font-size: 22px; font-weight: 600; }
+  .stat .u { color: var(--ink-3); font-size: 12px; }
+
+  /* List of rows (action cards) */
+  .action {
+    display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+    border: 1px solid var(--line); border-radius: 4px; background: var(--paper);
+    margin-bottom: 8px;
+  }
+  .action .when { font-size: 11px; color: var(--ink-3); width: 80px; flex: 0 0 auto; }
+  .action .body { flex: 1; }
+  .action .body .what { font-size: 13px; }
+  .action .body .where { font-size: 12px; color: var(--ink-3); }
+  .action .qty { font-size: 12px; color: var(--ink-2); width: 100px; flex: 0 0 auto; text-align: right; }
+  .action .go { flex: 0 0 auto; }
+
+  /* Diagram / chain */
+  .chain { display: flex; align-items: stretch; gap: 6px; }
+  .chain .node {
+    flex: 1; padding: 8px; background: #fafaf5; border: 1px solid var(--line);
+    border-radius: 4px; text-align: center; font-size: 12px;
+  }
+  .chain .node b { display: block; font-size: 11px; text-transform: uppercase; color: var(--ink-3); letter-spacing: 0.06em; margin-bottom: 4px; font-weight: 600; }
+  .chain .arrow { display: flex; align-items: center; color: var(--ink-3); font-size: 18px; }
+
+  /* Map placeholder */
+  .map {
+    height: 200px; background:
+      linear-gradient(0deg, transparent 24%, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.04) 26%, transparent 27%, transparent 74%, rgba(0,0,0,0.04) 75%, rgba(0,0,0,0.04) 76%, transparent 77%, transparent),
+      linear-gradient(90deg, transparent 24%, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.04) 26%, transparent 27%, transparent 74%, rgba(0,0,0,0.04) 75%, rgba(0,0,0,0.04) 76%, transparent 77%, transparent),
+      #e8efe5;
+    background-size: 40px 40px;
+    border: 1px solid var(--line); border-radius: 4px;
+    position: relative; overflow: hidden;
+  }
+  .map .pin {
+    position: absolute; left: 35%; top: 40%;
+    width: 14px; height: 14px; background: var(--accent-2); border: 2px solid #fff;
+    border-radius: 50%; box-shadow: 0 0 0 2px var(--accent-2);
+  }
+  .map .poly {
+    position: absolute; left: 28%; top: 28%;
+    width: 30%; height: 36%;
+    background: rgba(43, 58, 85, 0.18);
+    border: 2px dashed var(--accent);
+  }
+  .map .label {
+    position: absolute; left: 32%; top: 70%;
+    font-size: 11px; color: var(--ink); background: #fff; padding: 2px 6px;
+    border: 1px solid var(--line); border-radius: 3px;
+  }
+
+  /* Interviewer notes block (below each screen) */
+  .notes {
+    max-width: var(--screen);
+    margin: 0 auto 24px;
+    background: var(--note-bg);
+    border: 1px solid var(--note-line);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    font-size: 13px;
+  }
+  .notes h5 {
+    margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--warn);
+  }
+  .notes p { margin: 4px 0; }
+  .notes ul { margin: 4px 0 4px 18px; padding: 0; }
+  .notes .listen { color: var(--ink-2); }
+  .notes .listen b { color: var(--ink); }
+
+  /* Section divider */
+  .div {
+    max-width: var(--screen);
+    margin: 40px auto 8px;
+    border-top: 2px solid var(--line);
+    padding-top: 16px;
+  }
+  .div h2 { margin: 0; font-size: 18px; }
+  .div .sub { color: var(--ink-2); font-size: 13px; }
+
+  /* Tag accent on the producer / supplier cards */
+  .ribbon {
+    position: absolute; right: -4px; top: 10px; background: var(--accent-2);
+    color: #fff; font-size: 10px; padding: 2px 8px; text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .pos-rel { position: relative; }
+
+  /* Highlighted KPI strip */
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpis .card { padding: 10px 12px; }
+  .kpis .card .label { font-size: 11px; text-transform: uppercase; color: var(--ink-3); letter-spacing: 0.06em; }
+  .kpis .card .v { font-size: 20px; font-weight: 600; }
+  .kpis .card .v small { font-size: 12px; color: var(--ink-3); font-weight: 400; }
+
+  /* Print friendliness */
+  @media print {
+    body { background: #fff; }
+    .nav-btn { display: none; }
+    .notes { break-inside: avoid; }
+    .frame { break-inside: avoid; border: 1px solid #999; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============================================================== -->
+<!-- COVER -->
+<!-- ============================================================== -->
+<section class="cover">
+  <h1>North London Coffee Co. — Click-through Prototype</h1>
+  <p class="sub">
+    A walk-through of the three core workflows for the v1 product:
+    <b>receive green</b>, <b>plan &amp; run a roast</b>, and <b>fulfil an order into the EU</b>.
+    The product is <b>metric by default, EUR/GBP-native, and EUDR-ready</b> — every screen reflects
+    the design in the v1.1 PRD. This is a <b>wireframe, not a pixel-perfect design</b>; the goal is
+    to test whether each step makes sense to a real UK/EU roaster, not to show what the colours will be.
+  </p>
+  <div class="meta">
+    <div><b>Persona:</b> North London Coffee Co., 9 staff, ~3,500 kg/mo, multi-channel (DTC + 12 cafés + 1 private label)</div>
+    <div><b>Region:</b> United Kingdom, data residency <code>uk</code>, base currency <code>GBP</code></div>
+    <div><b>User in this walkthrough:</b> Aisha (head roaster + acting compliance officer), with the buyer Sam adding a new green lot</div>
+  </div>
+
+  <div class="toc">
+    <div>
+      <h3>1 · Receive green</h3>
+      <ol>
+        <li><a href="#s11">Receive home / new lot</a></li>
+        <li><a href="#s12">Select supplier</a></li>
+        <li><a href="#s13">Supplier risk review (warning, not block)</a></li>
+        <li><a href="#s13a">Block at shipment time (when EU exposure appears)</a></li>
+        <li><a href="#s14">Select / create producer</a></li>
+        <li><a href="#s15">Geolocation polygon</a></li>
+        <li><a href="#s16">Lot details</a></li>
+        <li><a href="#s17">Landed costs</a></li>
+        <li><a href="#s18">Risk review &amp; confirm</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>2 · Plan &amp; run a roast</h3>
+      <ol>
+        <li><a href="#s21">Daily board</a></li>
+        <li><a href="#s22">Net requirements</a></li>
+        <li><a href="#s23">Schedule a roast</a></li>
+        <li><a href="#s24">Roast in progress</a></li>
+        <li><a href="#s25">Roast complete</a></li>
+      </ol>
+    </div>
+    <div>
+      <h3>3 · Fulfil an order into the EU</h3>
+      <ol>
+        <li><a href="#s31">Orders queue</a></li>
+        <li><a href="#s32">Order detail (allocate)</a></li>
+        <li><a href="#s33">Pack workflow</a></li>
+        <li><a href="#s34">In-scope check (EU?)</a></li>
+        <li><a href="#s34a">Per-shipment opt-out (friction path)</a></li>
+        <li><a href="#s34b">Opt-out acknowledged / audit pack</a></li>
+        <li><a href="#s35">DDS draft auto-generated (the standard path)</a></li>
+        <li><a href="#s36">Sign &amp; audit pack</a></li>
+        <li><a href="#s37">Ship</a></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================== -->
+<!-- PHASE 1 — RECEIVE GREEN -->
+<!-- ============================================================== -->
+<div class="div" id="phase-1">
+  <h2>Phase 1 — Receive a new green lot</h2>
+  <div class="sub">Sam is logging a new arrival: 4 jute bags (60 kg each) of Kenya AA Kiandu from a new supplier. This is the EUDR-heavy flow.</div>
+</div>
+
+<!-- 1.1 Receive home -->
+<div class="frame" id="s11">
+  <div class="frame-head">
+    <div><span class="id">1.1</span> &nbsp; <span class="title">Receive green — start</span></div>
+    <div class="step">Phase 1 of 3 · Screen 1 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav>
+        <a>Daily board</a>
+        <a>Orders</a>
+        <a>Stock</a>
+        <a class="active">Receive green</a>
+        <a>Customers</a>
+        <a>Compliance</a>
+        <a>Reports</a>
+      </nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h">
+      <h2>Receive a new green lot</h2>
+      <div class="crumb">Start here whenever a pallet or a few bags arrive at the roastery door</div>
+    </div>
+
+    <div class="cols c21">
+      <div>
+        <div class="banner info">
+          You'll record the lot, the supplier, the producer, the geolocation, and the costs. The roaster can't use this lot until all of these are in place — that protects you at audit time.
+        </div>
+
+        <div class="box">
+          <h4>What we know already</h4>
+          <table class="t">
+            <tr><td style="width:160px;">Supplier invoice #</td><td><input class="input" value="HAS-KEN-26-0418" /></td></tr>
+            <tr><td>Bag count</td><td><input class="input" value="4" /></td></tr>
+            <tr><td>Net weight (kg)</td><td><input class="input" value="240" /></td></tr>
+            <tr><td>Container / pallet</td><td><input class="input" value="Pallet NL-2026-04-12-C" /></td></tr>
+            <tr><td>Arrival date</td><td><input class="input" value="2026-04-12" /></td></tr>
+            <tr><td>Warehouse location</td><td><select class="select"><option>Green Bay A · shelf 3</option></select></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="box">
+          <h4>Quick links</h4>
+          <ul style="margin: 0 0 0 18px; padding: 0; font-size: 13px; line-height: 1.9;">
+            <li><a>Add a new supplier (onboard before receiving)</a></li>
+            <li><a>Add a new producer</a></li>
+            <li><a>Import from CSV (forwarder / broker template)</a></li>
+            <li><a>View recent receives (last 30 days)</a></li>
+          </ul>
+        </div>
+
+        <div class="box" style="margin-top: 12px;">
+          <h4>Why all this for one lot?</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0;">
+            From 30 December 2026, every shipment of coffee into the EU must be backed by a Due Diligence Statement with a producer geolocation, supplier risk review, and a chain of custody. Capturing it once at receipt means the system generates the DDS in under two minutes at ship time, not a 90-minute scramble.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#phase-1">↑ Phase 1 index</a>
+    <div>Up next: <a href="#s12">select / create supplier →</a></div>
+    <a class="nav-btn" href="#s12">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"When a new bag lands at your door, who opens it? Where do you record what arrived?" <b>Goal:</b> see whether their current receiving is in their head, on a clipboard, in a spreadsheet, or already in a system.</p>
+  <p class="listen">"How many green lots did you receive last month? How many of those came from a new supplier?" <b>Goal:</b> calibrate how often this flow runs and how often they deal with new-supplier overhead.</p>
+  <p class="listen">"Do you ever have lots from a new origin (not just a new supplier)?" <b>Goal:</b> validate that the supplier/producer split makes sense in their world.</p>
+</div>
+
+<!-- 1.2 Select / create supplier -->
+<div class="frame" id="s12">
+  <div class="frame-head">
+    <div><span class="id">1.2</span> &nbsp; <span class="title">Select or create supplier</span></div>
+    <div class="step">Phase 1 of 3 · Screen 2 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav>
+        <a>Daily board</a>
+        <a>Orders</a>
+        <a>Stock</a>
+        <a class="active">Receive green</a>
+        <a>Customers</a>
+        <a>Compliance</a>
+        <a>Reports</a>
+      </nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Who supplied this lot?</h2><div class="crumb">Step 1 of 6</div></div>
+
+    <div class="cols c12">
+      <div class="box">
+        <h4>Search existing suppliers</h4>
+        <input class="input" placeholder="Search by name, EORI, country…" value="Hasbean" />
+        <div style="margin-top: 10px;">
+          <div class="card pos-rel" style="margin-bottom: 8px;">
+            <h3>Hasbean Coffee</h3>
+            <div class="meta">Stafford, UK · EORI GB123456789 · last lot 2026-02-14</div>
+            <div style="margin-top: 6px;">
+              <span class="pill ok">Risk: low</span>
+              <span class="pill info" style="margin-left: 4px;">EUDR-ready</span>
+            </div>
+          </div>
+          <div class="card pos-rel" style="margin-bottom: 8px; opacity: 0.7;">
+            <h3>Hasbean Coffee — Italy branch</h3>
+            <div class="meta">Trieste, IT · EORI IT98765432101</div>
+            <div style="margin-top: 6px;">
+              <span class="pill warn">Risk: standard</span>
+              <span class="pill neutral" style="margin-left: 4px;">EUDR review due</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="box" style="background: #fbf6ec; border-color: var(--note-line);">
+          <h4 style="color: var(--warn);">Not in the list?</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 8px;">If this is a new supplier, you must complete the supplier onboarding before you can receive from them. This is the EUDR risk assessment step — about 10 minutes.</p>
+          <a class="btn">+ Onboard a new supplier</a>
+        </div>
+
+        <div class="box" style="margin-top: 12px;">
+          <h4>What "EUDR-ready" means on a supplier</h4>
+          <ul style="margin: 0 0 0 18px; padding: 0; font-size: 13px; line-height: 1.7;">
+            <li>Country risk assessed: <b>low</b></li>
+            <li>Producer risk assessed: <b>low</b></li>
+            <li>Last risk review: <b>2026-01-15</b> (within the last 12 months)</li>
+            <li>Supplier DDS reference recorded: <b>yes (since 2025-12-01)</b></li>
+            <li>Upstream documentation on file: <b>complete</b></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s11">← Previous</a>
+    <div>Up next: <a href="#s13">supplier risk gate →</a></div>
+    <a class="nav-btn" href="#s13">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"How many green suppliers do you have? How many are repeat? How often do you onboard a new one?"</p>
+  <p class="listen">"When you receive from a new supplier, what paperwork do you currently keep?" <b>Goal:</b> see if they have a file folder, an email inbox, a spreadsheet, or nothing.</p>
+  <p class="listen">"What does a 'risk assessment' on a supplier mean to you today?" <b>Goal:</b> test whether the EUDR language makes sense or feels like jargon.</p>
+</div>
+
+<!-- 1.3 Supplier risk gate (now: warning, not block) -->
+<div class="frame" id="s13">
+  <div class="frame-head">
+    <div><span class="id">1.3</span> &nbsp; <span class="title">Supplier risk review (warning, not block)</span></div>
+    <div class="step">Phase 1 of 3 · Screen 3 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a>Orders</a><a>Stock</a><a class="active">Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Receive green — supplier risk review</h2><div class="crumb">Step 1 of 6 · You can still receive this lot</div></div>
+
+    <div class="banner warn">
+      <b>Heads up: this supplier doesn't have a current EUDR risk assessment on file.</b> You can receive this lot and use it for UK-UK sales immediately. If any portion of this lot is later shipped to the EU, the system will require either a risk assessment, a Due Diligence Statement, or a per-shipment opt-out (with full audit trail) at that point. We recommend completing the supplier onboarding now, before any EU shipment needs to happen.
+    </div>
+
+    <div class="cols c12">
+      <div class="box">
+        <h4>Selected supplier</h4>
+        <h3>Origin &amp; Bean Co.</h3>
+        <div class="meta">Edinburgh, UK · EORI GB998877665 · first time on file</div>
+        <table class="t" style="margin-top: 8px;">
+          <tr><td>Country risk</td><td><span class="pill bad">not assessed</span></td></tr>
+          <tr><td>Producer risk</td><td><span class="pill bad">not assessed</span></td></tr>
+          <tr><td>Last review</td><td>—</td></tr>
+          <tr><td>Supplier DDS ref</td><td>—</td></tr>
+        </table>
+      </div>
+
+      <div>
+        <div class="box" style="background: #f4faf5; border-color: #b0d3b6;">
+          <h4 style="color: var(--ok);">You can still receive this lot</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 8px;">Receiving this lot is allowed because the destination risk is the issue, not the receipt. The system has three possible paths to an EU shipment from this lot:</p>
+          <ol style="margin: 0 0 10px 18px; padding: 0; font-size: 13px; line-height: 1.7;">
+            <li><b>Complete the supplier risk assessment</b> (10 minutes) — recommended. This unblocks EU shipment for any amount of this lot without further work.</li>
+            <li><b>Ship to the EU and file a DDS</b> — works once the supplier risk assessment is in place. Standard path.</li>
+            <li><b>Ship to the EU without a DDS</b> — only via the per-shipment opt-out path (see screen 3.4a). The system records your decision, your reason, and your role. The opt-out is *not* available for lots from EU high-risk countries — this one isn't, so it's available.</li>
+          </ol>
+          <a class="btn" style="background: var(--ok); border-color: var(--ok);">Receive 240 kg anyway</a>
+          <a class="btn" style="margin-left: 6px;">Complete supplier onboarding now (10 min)</a>
+          <a class="btn ghost" style="margin-left: 6px;">Save lot as draft</a>
+        </div>
+
+        <div class="banner info" style="margin-top: 12px;">
+          <b>Why we don't block by default.</b> Many UK-UK roasters receive lots they have no intention of selling to the EU. Forcing every receiving to do EUDR paperwork would push them off the product. The system warns here and locks down at the moment of an EU shipment — that's when the legal exposure actually starts.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s12">← Previous</a>
+    <div>Up next: <a href="#s14">select / create producer →</a></div>
+    <a class="nav-btn" href="#s14">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"When you see 'you can receive this but you'll need a risk assessment before EU shipment', is that a relief or a worry? Why?"</p>
+  <p class="listen">"If you knew the lot would never go to the EU, would you still complete the supplier risk assessment now, or would you wait until the first EU order came in?"</p>
+  <p class="listen">"If a regulator asked 'why did you receive this lot without a risk assessment?', is the system message above a reasonable answer, or do you want a more formal record?"</p>
+</div>
+
+<!-- 1.3a NEW — The block state at shipment time, when the roaster skipped the supplier onboarding -->
+<div class="frame" id="s13a">
+  <div class="frame-head">
+    <div><span class="id">1.3a</span> &nbsp; <span class="title">The block surfaces at shipment time, not at receipt</span></div>
+    <div class="step">Phase 1 of 3 · Screen 4 of 21 · (linked from §6.5)</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a>Orders</a><a>Pack</a><a>Receive green</a><a>Customers</a><a class="active">Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Compliance dashboard · open action</h2><div class="crumb">Lot NLCC-2026-0404-ETH-YG-AB needs a risk assessment before EU shipment</div></div>
+
+    <div class="banner bad">
+      <b>Block: this lot is destined for an EU shipment and the supplier doesn't have a current risk assessment on file.</b> The system received the lot without a risk assessment (you may have intended to do UK-UK only at the time). Now that an EU shipment is in the queue, the system requires one of three actions.
+    </div>
+
+    <div class="cols c12">
+      <div class="box">
+        <h4>The shipment that triggered this</h4>
+        <table class="t">
+          <tr><td>Order</td><td>WS-2026-0421 · Father &amp; Sons Café, Berlin DE</td></tr>
+          <tr><td>Destination</td><td>DE (EU member state) — in scope for EUDR</td></tr>
+          <tr><td>Net mass</td><td>14.36 kg (above 1 kg threshold)</td></tr>
+          <tr><td>Green lots in this shipment</td><td>3 lots — see audit</td></tr>
+          <tr><td>Lots with risk assessment</td><td>2 of 3 ✓</td></tr>
+          <tr><td>Lots without risk assessment</td><td><b>1: NLCC-2026-0404-ETH-YG-AB</b> ✗</td></tr>
+        </table>
+      </div>
+
+      <div>
+        <div class="box">
+          <h4>What you can do to unblock</h4>
+          <ol style="margin: 0 0 0 18px; padding: 0; font-size: 13px; line-height: 1.8;">
+            <li><b>Complete the supplier risk assessment for Origin &amp; Bean Co.</b> (10 min) — unblocks this shipment and all future EU shipments from this lot. <a>Start onboarding</a></li>
+            <li><b>Choose a different lot for this shipment.</b> Reallocate the Yirgacheffe portion of WS-2026-0421 to NLCC-2026-0418-KEN-AA (Kenya AA, fully assessed). <a>Reallocate</a></li>
+            <li><b>Take the per-shipment opt-out for this lot only.</b> Recorded, authorised, audit-trail generated. The opt-out is <i>not</i> available for lots from EU high-risk countries — this supplier isn't, so the opt-out is available. <a class="nav-btn" href="#s34a" style="margin-left: 4px;">Go to opt-out screen</a></li>
+            <li><b>Hold the shipment.</b> The customer will be notified of a delay. <a>Hold &amp; notify customer</a></li>
+          </ol>
+        </div>
+
+        <div class="banner warn" style="margin-top: 12px;">
+          <b>Why this is a hard block, not a warning.</b> The receiving moment (screen 1.3) was a warning because no EU exposure existed. The shipment moment is a block because EU exposure exists and the underlying data isn't there. The two moments have different rules on purpose.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s13">← Previous</a>
+    <div>Up next: <a href="#s14">select / create producer →</a></div>
+    <a class="nav-btn" href="#s14">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"When you get this block at the moment of an EU shipment, what's your first reaction?"</p>
+  <p class="listen">"Of the four options, which one would you actually take? Why?"</p>
+  <p class="listen">"If you were going to ship to the EU and saw this block, would you expect the system to have warned you earlier — e.g. when you received the lot?"</p>
+</div>
+
+<!-- 1.4 Select / create producer -->
+<div class="frame" id="s14">
+  <div class="frame-head">
+    <div><span class="id">1.4</span> &nbsp; <span class="title">Select or create producer</span></div>
+    <div class="step">Phase 1 of 3 · Screen 4 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a>Orders</a><a>Stock</a><a class="active">Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Who produced this coffee?</h2><div class="crumb">Step 2 of 6 · Supplier: Hasbean Coffee</div></div>
+
+    <div class="cols c12">
+      <div>
+        <div class="box">
+          <h4>Search producers</h4>
+          <input class="input" placeholder="Search by name, country, region…" value="Kiandu" />
+          <div style="margin-top: 10px;">
+            <div class="card" style="margin-bottom: 8px;">
+              <h3>Kiandu Farmers Cooperative Society</h3>
+              <div class="meta">Nyeri County, Kenya · 1,142 smallholder members</div>
+              <div style="margin-top: 6px;">
+                <span class="pill ok">Polygon on file</span>
+                <span class="pill info" style="margin-left: 4px;">3rd-party verified</span>
+                <span class="pill neutral" style="margin-left: 4px;">Rainforest Alliance</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="box">
+          <h4>Producer details (read-only · on file)</h4>
+          <table class="t">
+            <tr><td>Name</td><td>Kiandu Farmers Cooperative Society</td></tr>
+            <tr><td>Type</td><td>Cooperative (1,142 smallholders)</td></tr>
+            <tr><td>Country / region</td><td>KE · Nyeri County</td></tr>
+            <tr><td>Altitude</td><td>1,700 – 1,900 m</td></tr>
+            <tr><td>Geolocation</td><td>Polygon · 4 vertices · 0.21 km² · <a>view on map</a></td></tr>
+            <tr><td>Verification</td><td>3rd-party verified by Source Trust, 2025-09-12</td></tr>
+            <tr><td>Certifications</td><td>Rainforest Alliance (RA-456789), in scope</td></tr>
+          </table>
+        </div>
+
+        <div class="box" style="margin-top: 12px;">
+          <h4>For this lot specifically</h4>
+          <table class="t">
+            <tr><td>Country of harvest</td><td>KE (Kenya)</td></tr>
+            <tr><td>Harvest year</td><td><input class="input" value="2025" /></td></tr>
+            <tr><td>HS code</td><td>0901 (green coffee, unroasted)</td></tr>
+            <tr><td>Net mass (kg)</td><td><input class="input" value="240" /></td></tr>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s13">← Previous</a>
+    <div>Up next: <a href="#s15">geolocation polygon →</a></div>
+    <a class="nav-btn" href="#s15">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"Do you know where the coffee you buy actually comes from — farm, co-op, region? How detailed is that information in your current records?"</p>
+  <p class="listen">"When your supplier says 'this is from Kiandu', what do they actually give you — a region name, a farm name, a polygon file?"</p>
+  <p class="listen">"Have you ever been asked for a producer's coordinates by a wholesale customer or a certification body? What did you do?"</p>
+</div>
+
+<!-- 1.5 Geolocation polygon -->
+<div class="frame" id="s15">
+  <div class="frame-head">
+    <div><span class="id">1.5</span> &nbsp; <span class="title">Geolocation polygon</span></div>
+    <div class="step">Phase 1 of 3 · Screen 5 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a>Orders</a><a>Stock</a><a class="active">Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Producer geolocation</h2><div class="crumb">Step 3 of 6 · Kiandu FCS</div></div>
+
+    <div class="banner info">
+      EUDR requires a polygon of the plot of land where the coffee was grown. If the producer is a co-operative or smallholder group, the polygon should cover the group's cultivated area. We're showing the polygon we already have on file for Kiandu FCS.
+    </div>
+
+    <div class="row c12" style="grid-template-columns: 1fr 360px;">
+      <div>
+        <div class="map">
+          <div class="poly"></div>
+          <div class="pin"></div>
+          <div class="label">Kiandu FCS · 0.21 km² · 4 vertices</div>
+        </div>
+        <div style="margin-top: 8px; display: flex; gap: 12px; font-size: 12px; color: var(--ink-3);">
+          <span>Source: Source Trust, 2025-09-12</span> ·
+          <span>File: <a>kiandu-2025.geojson</a></span> ·
+          <span>Uploaded: 2025-09-15 by Aisha</span>
+        </div>
+      </div>
+
+      <div>
+        <div class="box">
+          <h4>Polygon details</h4>
+          <table class="t">
+            <tr><td>Type</td><td>Polygon</td></tr>
+            <tr><td>Vertices</td><td>4</td></tr>
+            <tr><td>Area (declared)</td><td>0.21 km²</td></tr>
+            <tr><td>Area (computed)</td><td>0.22 km²</td></tr>
+            <tr><td>Country</td><td>KE</td></tr>
+            <tr><td>Risk class (country)</td><td><span class="pill ok">low</span></td></tr>
+          </table>
+          <div style="margin-top: 8px;">
+            <a class="btn secondary small">Replace polygon</a>
+            <a class="btn ghost small" style="margin-left: 4px;">View source file</a>
+          </div>
+        </div>
+
+        <div class="banner ok" style="margin-top: 10px;">
+          <b>Polygon checks out.</b> Area within 5% of declared, country risk low, 3rd-party verification dated within 12 months. This lot can be exported to the EU.
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s14">← Previous</a>
+    <div>Up next: <a href="#s16">lot details →</a></div>
+    <a class="nav-btn" href="#s16">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"Has your supplier ever sent you a polygon file, a KML, a Google Earth pin, or anything like that? What format was it in?"</p>
+  <p class="listen">"If your supplier can't give you a polygon, what do you do? Is the answer 'I don't buy that lot' or 'I buy it anyway'?"</p>
+  <p class="listen">"If a co-op is the supplier, is the polygon for the co-op's land or for each individual smallholder's plot? Does this distinction matter to you?"</p>
+</div>
+
+<!-- 1.6 Lot details -->
+<div class="frame" id="s16">
+  <div class="frame-head">
+    <div><span class="id">1.6</span> &nbsp; <span class="title">Lot details</span></div>
+    <div class="step">Phase 1 of 3 · Screen 6 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a>Orders</a><a>Stock</a><a class="active">Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Lot details</h2><div class="crumb">Step 4 of 6 · Hasbean → Kiandu FCS</div></div>
+
+    <div class="row c2">
+      <div class="box">
+        <h4>Identification</h4>
+        <label class="f">Internal lot code (auto-suggested)</label>
+        <input class="input" value="NLCC-2026-0418-KEN-AA" />
+        <label class="f" style="margin-top: 8px;">Supplier's lot code</label>
+        <input class="input" value="HAS-KEN-26-0418" />
+        <label class="f" style="margin-top: 8px;">Process / varietal</label>
+        <input class="input" value="Washed · SL28 / SL34 / Ruiru 11" />
+        <label class="f" style="margin-top: 8px;">Screen size / grade</label>
+        <input class="input" value="AA · screen 18+" />
+      </div>
+
+      <div class="box">
+        <h4>Cup &amp; quality</h4>
+        <div class="row c2">
+          <div>
+            <label class="f">Moisture %</label>
+            <input class="input" value="10.8" />
+          </div>
+          <div>
+            <label class="f">Water activity (a<sub>w</sub>)</label>
+            <input class="input" value="0.54" />
+          </div>
+        </div>
+        <div class="row c2" style="margin-top: 8px;">
+          <div>
+            <label class="f">Defects (primary, per 350g)</label>
+            <input class="input" value="0" />
+          </div>
+          <div>
+            <label class="f">Defects (secondary, per 350g)</label>
+            <input class="input" value="2" />
+          </div>
+        </div>
+        <label class="f" style="margin-top: 8px;">Cupping notes</label>
+        <textarea class="input" rows="3">Blackcurrant, brown sugar, lemon zest. Bright acidity, juicy body. 87.5 (SCA).</textarea>
+        <div style="margin-top: 6px;"><a class="btn ghost small">+ attach cupping sheet PDF</a></div>
+      </div>
+    </div>
+
+    <div class="box" style="margin-top: 12px;">
+      <h4>Supporting documents</h4>
+      <table class="t">
+        <tr><th>Document</th><th>File</th><th>Uploaded</th><th></th></tr>
+        <tr><td>Phytosanitary certificate</td><td><a>phyto-ken-2025-0418.pdf</a></td><td>2026-04-12 · Aisha</td><td><span class="pill ok">verified</span></td></tr>
+        <tr><td>Producer statement (EUDR)</td><td><a>producer-statement-kiandu-2025.pdf</a></td><td>2026-04-12 · Sam</td><td><span class="pill ok">verified</span></td></tr>
+        <tr><td>Producer statement (organic / RA)</td><td><a>ra-cert-kiandu-2025.pdf</a></td><td>2026-04-12 · Sam</td><td><span class="pill ok">verified</span></td></tr>
+        <tr><td>ICO certificate of origin</td><td><a>ico-ken-2025-0418.pdf</a></td><td>2026-04-12 · Sam</td><td><span class="pill ok">verified</span></td></tr>
+        <tr><td colspan="4" style="color: var(--ink-3);"><a>+ add another document</a></td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s15">← Previous</a>
+    <div>Up next: <a href="#s17">landed costs →</a></div>
+    <a class="nav-btn" href="#s17">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"What information do you currently record on a green lot when it arrives?"</p>
+  <p class="listen">"Where does the cupping score live today? Is it linked to the lot, or in a notebook, or on a piece of paper?"</p>
+  <p class="listen">"When a certification body (organic, Fairtrade, RA) audits you, what do they ask for? Is that the same paperwork?"</p>
+</div>
+
+<!-- 1.7 Landed costs -->
+<div class="frame" id="s17">
+  <div class="frame-head">
+    <div><span class="id">1.7</span> &nbsp; <span class="title">Landed costs</span></div>
+    <div class="step">Phase 1 of 3 · Screen 7 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a>Orders</a><a>Stock</a><a class="active">Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Landed costs for this lot</h2><div class="crumb">Step 5 of 6 · NLCC-2026-0418-KEN-AA</div></div>
+
+    <div class="banner info">
+      Record every cost that hits this lot, in the currency you actually paid. The system snapshots the FX rate to GBP and computes the per-kg landed cost. Recoverable VAT is tracked separately (your accountant reclaims it on the VAT return).
+    </div>
+
+    <div class="box">
+      <h4>Cost events</h4>
+      <table class="t">
+        <tr><th>Date</th><th>Kind</th><th>Description</th><th>Amount</th><th>VAT</th><th>GBP equivalent</th><th></th></tr>
+        <tr>
+          <td>2026-03-15</td>
+          <td>Purchase</td>
+          <td>240 kg × £11.20/kg ex-VAT (Hasbean)</td>
+          <td>£2,688.00</td>
+          <td>£0 (reverse charge, non-EU supplier)</td>
+          <td>£2,688.00</td>
+          <td><a>edit</a></td>
+        </tr>
+        <tr>
+          <td>2026-03-22</td>
+          <td>Freight</td>
+          <td>Sea freight Mombasa → Felixstowe, share of container</td>
+          <td>£312.00</td>
+          <td>£62.40 (20% standard, recoverable)</td>
+          <td>£312.00</td>
+          <td><a>edit</a></td>
+        </tr>
+        <tr>
+          <td>2026-04-08</td>
+          <td>Duty</td>
+          <td>EU import duty 0% (under FTA threshold for green coffee from KE)</td>
+          <td>£0.00</td>
+          <td>—</td>
+          <td>£0.00</td>
+          <td><a>edit</a></td>
+        </tr>
+        <tr>
+          <td>2026-04-12</td>
+          <td>Inspection</td>
+          <td>DEFRA port health check, phytosanitary verification</td>
+          <td>£48.00</td>
+          <td>£9.60 (20% standard, recoverable)</td>
+          <td>£48.00</td>
+          <td><a>edit</a></td>
+        </tr>
+        <tr>
+          <td>2026-04-12</td>
+          <td>Insurance</td>
+          <td>Cargo insurance, prorated</td>
+          <td>£24.00</td>
+          <td>exempt</td>
+          <td>£24.00</td>
+          <td><a>edit</a></td>
+        </tr>
+        <tr style="background: #fafaf5;">
+          <td colspan="4" style="text-align: right;"><b>Landed cost (ex-VAT, ex-recoverable VAT):</b></td>
+          <td><b>£3,072.00</b></td>
+          <td></td>
+        </tr>
+        <tr style="background: #fafaf5;">
+          <td colspan="4" style="text-align: right;"><b>Per kg (240 kg):</b></td>
+          <td><b>£12.80 / kg</b></td>
+          <td></td>
+        </tr>
+        <tr style="background: #fafaf5;">
+          <td colspan="4" style="text-align: right; color: var(--ok);"><b>Recoverable input VAT to be claimed next quarter:</b></td>
+          <td style="color: var(--ok);"><b>£72.00</b></td>
+          <td></td>
+        </tr>
+        <tr><td colspan="7" style="color: var(--ink-3);"><a>+ add another cost event</a></td></tr>
+      </table>
+    </div>
+
+    <div class="banner ok" style="margin-top: 12px;">
+      <b>This snapshot is locked in.</b> The £12.80/kg cost basis is now the price for every gram of green coffee in this lot. When you roast it, the system snapshots that number into the roast batch — even if next month's green costs move by 30%, the coffee you roasted *this* month is reported at *this* month's cost. That's the audit-defensible choice.
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s16">← Previous</a>
+    <div>Up next: <a href="#s18">risk review &amp; confirm →</a></div>
+    <a class="nav-btn" href="#s18">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"What costs do you currently track on a green lot, and which ones do you lump together?"</p>
+  <p class="listen">"When green prices move 30% in a year (which happened in 2021-22 and again in 2024-25), how does that show up in your margin today?"</p>
+  <p class="listen">"Do you reclaim input VAT on green coffee purchases? Who does that in your team?"</p>
+</div>
+
+<!-- 1.8 Risk review & confirm -->
+<div class="frame" id="s18">
+  <div class="frame-head">
+    <div><span class="id">1.8</span> &nbsp; <span class="title">Risk review &amp; confirm</span></div>
+    <div class="step">Phase 1 of 3 · Screen 8 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a>Orders</a><a>Stock</a><a class="active">Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Final check &amp; receive</h2><div class="crumb">Step 6 of 6 · NLCC-2026-0418-KEN-AA</div></div>
+
+    <div class="cols c21">
+      <div>
+        <div class="box">
+          <h4>Risk summary (auto-computed)</h4>
+          <table class="t">
+            <tr><td>Supplier risk assessment</td><td><span class="pill ok">low</span></td><td>Hasbean Coffee · reviewed 2025-10-04</td></tr>
+            <tr><td>Producer risk assessment</td><td><span class="pill ok">low</span></td><td>Kiandu FCS · verified 3rd-party 2025-09-12</td></tr>
+            <tr><td>Country of harvest</td><td><span class="pill ok">low</span></td><td>Kenya · per EU country-risk benchmark, Q1 2026</td></tr>
+            <tr><td>Supply-chain risk</td><td><span class="pill ok">low</span></td><td>Direct supplier, no intermediaries</td></tr>
+            <tr style="background: #f4faf5;">
+              <td><b>Overall risk</b></td>
+              <td colspan="2"><span class="pill ok"><b>low</b></span> &nbsp; No mitigation measures required.</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="box" style="margin-top: 12px;">
+          <h4>Auto-generated risk assessment narrative</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0;">
+            This lot is sourced from Hasbean Coffee, a UK-based supplier with an established direct relationship with the Kiandu Farmers Cooperative Society in Nyeri County, Kenya. The country of harvest (KE) is classified as low risk in the EUDR country-benchmarking dataset. The producer's geolocation has been third-party verified by Source Trust within the past 12 months. The cooperative holds Rainforest Alliance certification. No indicators of deforestation risk have been identified. <a>edit narrative</a>
+          </p>
+        </div>
+      </div>
+
+      <div>
+        <div class="box" style="background: #f4faf5; border-color: #b0d3b6;">
+          <h4 style="color: var(--ok);">Ready to receive</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 8px;">All EUDR requirements are met. Receiving this lot will:</p>
+          <ul style="margin: 0 0 8px 18px; padding: 0; font-size: 13px; line-height: 1.7;">
+            <li>Add 240 kg of Kenya AA to <b>Green Bay A · shelf 3</b></li>
+            <li>Create a <code>GreenLot</code> with full genealogy and EUDR reference</li>
+            <li>Snapshot the £12.80/kg landed cost into the lot's cost basis</li>
+            <li>Make the lot available for the net-requirements planner</li>
+            <li>Add an <code>AuditEvent</code> to the tamper-evident log</li>
+          </ul>
+          <a class="btn">✓ Receive 240 kg of Kenya AA</a>
+          <a class="btn secondary" style="margin-left: 4px;">Save as draft</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s17">← Previous</a>
+    <div>Up next: <a href="#phase-2">Phase 2 — Plan &amp; run a roast →</a></div>
+    <a class="nav-btn" href="#phase-2">Next phase</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"Is this last step useful, or does it feel like friction?"</p>
+  <p class="listen">"What would 'standard' or 'high' risk look like? What would the system ask you to do?"</p>
+  <p class="listen">"Do you trust an auto-generated risk narrative, or do you always want to write your own?"</p>
+</div>
+
+
+<!-- ============================================================== -->
+<!-- PHASE 2 — PLAN & RUN A ROAST -->
+<!-- ============================================================== -->
+<div class="div" id="phase-2">
+  <h2>Phase 2 — Plan &amp; run a roast</h2>
+  <div class="sub">Aisha looks at the daily board on Monday morning, decides what to roast, and runs the batch.</div>
+</div>
+
+<!-- 2.1 Daily board -->
+<div class="frame" id="s21">
+  <div class="frame-head">
+    <div><span class="id">2.1</span> &nbsp; <span class="title">Daily board (the home screen)</span></div>
+    <div class="step">Phase 2 of 3 · Screen 9 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a class="active">Daily board</a><a>Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h">
+      <h2>Monday, 14 April 2026</h2>
+      <div class="crumb">Week 16 · Day 1 · London time</div>
+    </div>
+
+    <div class="kpis">
+      <div class="card"><div class="label">Roast today</div><div class="v">2 <small>batches</small></div></div>
+      <div class="card"><div class="label">Pack today</div><div class="v">14 <small>orders</small></div></div>
+      <div class="card"><div class="label">Ship today</div><div class="v">11 <small>orders</small></div></div>
+      <div class="card"><div class="label">EU / UK orders awaiting DDS</div><div class="v" style="color: var(--warn);">3 <small>need signature</small></div></div>
+    </div>
+
+    <div class="banner info">
+      <b>What changed since Friday.</b> 4 new wholesale orders came in over the weekend · 1 customer (Berlin) increased an order by 200 bags · 2 green lots received (Ethiopia + Kenya) · 1 DDS acknowledged by the EU regulator.
+    </div>
+
+    <div class="row c3">
+      <div class="box">
+        <h4>Roast today</h4>
+        <div class="action">
+          <div class="when">07:30</div>
+          <div class="body">
+            <div class="what">Ethiopia Yirgacheffe · 12 kg green</div>
+            <div class="where">Roast #NC-2026-04-14-A · Loring S15 · from Green Bay A shelf 1</div>
+          </div>
+          <div class="qty">→ 10.2 kg roasted</div>
+          <div class="go"><a class="btn small">Start</a></div>
+        </div>
+        <div class="action">
+          <div class="when">10:00</div>
+          <div class="body">
+            <div class="what">Kenya AA Kiandu · 8 kg green</div>
+            <div class="where">Roast #NC-2026-04-14-B · Loring S15 · from Green Bay A shelf 3</div>
+          </div>
+          <div class="qty">→ 6.8 kg roasted</div>
+          <div class="go"><a class="btn small">Start</a></div>
+        </div>
+      </div>
+
+      <div class="box">
+        <h4>Pack today</h4>
+        <div class="action">
+          <div class="when">12:00</div>
+          <div class="body">
+            <div class="what">14 orders · 87 bags total</div>
+            <div class="where">DTC + 2 wholesale · destination: UK, IE, DE, FR</div>
+          </div>
+          <div class="qty">3,250 g loose roasted</div>
+          <div class="go"><a class="btn small">Open pack</a></div>
+        </div>
+      </div>
+
+      <div class="box">
+        <h4>Ship today</h4>
+        <div class="action">
+          <div class="when">15:00</div>
+          <div class="body">
+            <div class="what">11 orders · 3 need DDS</div>
+            <div class="where">DPD pickup at 15:30 · Royal Mail at 16:00</div>
+          </div>
+          <div class="qty">3 DDS pending</div>
+          <div class="go"><a class="btn small">Review</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s18">← Phase 1 last</a>
+    <div>Up next: <a href="#s22">net requirements →</a></div>
+    <a class="nav-btn" href="#s22">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"What does your Monday morning look like today? Walk me through what you do before the first roast starts."</p>
+  <p class="listen">"On this screen, what would you want to see first? Is 'Roast today / Pack today / Ship today' the right structure, or would you organise it differently?"</p>
+  <p class="listen">"If you had a magic wand for one thing on this screen, what would it be?"</p>
+</div>
+
+<!-- 2.2 Net requirements -->
+<div class="frame" id="s22">
+  <div class="frame-head">
+    <div><span class="id">2.2</span> &nbsp; <span class="title">Net requirements (the "why" behind the board)</span></div>
+    <div class="step">Phase 2 of 3 · Screen 10 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a class="active">Daily board</a><a>Orders</a><a>Stock</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Net requirements · next 7 days</h2><div class="crumb">For SKU <b>250g bag · Yirgacheffe · whole bean</b></div></div>
+
+    <div class="banner info">
+      The system shows the math: what your customers have ordered, what you already have, what's scheduled to be roasted, and what's missing. This is the "why" behind the daily board's recommendations.
+    </div>
+
+    <div class="box">
+      <table class="t">
+        <tr><th>Date</th><th>Need (kg)</th><th>Have (kg)</th><th>Scheduled</th><th>Deficit</th><th>Source green lot(s)</th></tr>
+        <tr>
+          <td>Mon 14 Apr</td>
+          <td>3.2</td>
+          <td>4.5 (packaged) + 1.0 (loose)</td>
+          <td>+10.2 (roast 14-A at 07:30)</td>
+          <td>0 — covered</td>
+          <td>Ethiopia Yirg · Sidemo / Konga (received 2026-03-22)</td>
+        </tr>
+        <tr>
+          <td>Tue 15 Apr</td>
+          <td>2.8</td>
+          <td>12.5 (after roast 14-A)</td>
+          <td>—</td>
+          <td>0 — covered</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Wed 16 Apr</td>
+          <td>2.5</td>
+          <td>9.7</td>
+          <td>—</td>
+          <td>0 — covered</td>
+          <td>—</td>
+        </tr>
+        <tr style="background: #fbf2e1;">
+          <td>Thu 17 Apr</td>
+          <td>4.1</td>
+          <td>7.2</td>
+          <td>—</td>
+          <td>0 — covered</td>
+          <td>—</td>
+        </tr>
+        <tr style="background: #fbf2e1;">
+          <td>Fri 18 Apr</td>
+          <td>3.0</td>
+          <td>3.1</td>
+          <td>—</td>
+          <td>0 — tight (3.1 vs 3.0)</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td>Sat 19 Apr</td>
+          <td>0.5</td>
+          <td>0.1</td>
+          <td>—</td>
+          <td><b>0.4 kg</b> — recommend roast Mon 14-A bigger, or add Thu 17 Apr 5kg batch</td>
+          <td>Ethiopia Yirg · Sidemo / Konga (received 2026-03-22)</td>
+        </tr>
+        <tr>
+          <td>Sun 20 Apr</td>
+          <td>0.0</td>
+          <td>—</td>
+          <td>—</td>
+          <td>0</td>
+          <td>—</td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="row c2" style="margin-top: 12px;">
+      <div class="box">
+        <h4>Why these orders?</h4>
+        <p style="font-size: 13px; color: var(--ink-2); margin: 0;">4 wholesale orders + 19 DTC orders + 1 subscription batch (auto-generated for Mon 14). 3 wholesale customers increased after Friday's newsletter.</p>
+      </div>
+      <div class="box">
+        <h4>What if I do nothing?</h4>
+        <p style="font-size: 13px; color: var(--ink-2); margin: 0;">Sat 19 Apr will be short ~0.4 kg. 1 wholesale order (17 bags) would ship 1 day late. The system would also push Mon 21 Apr's orders into a tighter state.</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <a class="btn">Schedule a 5 kg Yirgacheffe roast on Thu 17 Apr</a>
+      <a class="btn secondary" style="margin-left: 6px;">Bump Mon 14-A from 12 kg to 14 kg</a>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s21">← Previous</a>
+    <div>Up next: <a href="#s23">schedule a roast →</a></div>
+    <a class="nav-btn" href="#s23">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"How do you decide today how much to roast? Is it from a feeling, a spreadsheet, your gut?"</p>
+  <p class="listen">"When you get a big wholesale order, how far ahead does that change your roasting plan?"</p>
+  <p class="listen">"If the system tells you 'you'll be short on Saturday', what would you actually do?"</p>
+</div>
+
+<!-- 2.3 Schedule a roast -->
+<div class="frame" id="s23">
+  <div class="frame-head">
+    <div><span class="id">2.3</span> &nbsp; <span class="title">Schedule a roast</span></div>
+    <div class="step">Phase 2 of 3 · Screen 11 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a class="active">Daily board</a><a>Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Schedule a new roast batch</h2><div class="crumb">Roast #NC-2026-04-14-B</div></div>
+
+    <div class="row c12">
+      <div>
+        <div class="box">
+          <h4>Batch details</h4>
+          <div class="row c2">
+            <div>
+              <label class="f">Roast date</label>
+              <input class="input" value="Mon 14 Apr 2026 · 10:00" />
+            </div>
+            <div>
+              <label class="f">Machine</label>
+              <select class="select"><option>Loring S15 (roaster 1)</option></select>
+            </div>
+          </div>
+          <div class="row c2" style="margin-top: 10px;">
+            <div>
+              <label class="f">Operator</label>
+              <select class="select"><option>Aisha (you)</option></select>
+            </div>
+            <div>
+              <label class="f">Profile reference (optional)</label>
+              <input class="input" value="Kenya AA · light city · 11:30" />
+            </div>
+          </div>
+        </div>
+
+        <div class="box" style="margin-top: 12px;">
+          <h4>Green coffee to use</h4>
+          <table class="t">
+            <tr><th>Lot</th><th>Available</th><th>Use (kg)</th><th>Cost / kg (snapshotted)</th><th>Trace</th></tr>
+            <tr>
+              <td>NLCC-2026-0418-KEN-AA <span class="pill info" style="margin-left: 4px;">EUDR</span></td>
+              <td>240 kg</td>
+              <td><input class="input" value="8.0" style="width: 80px;" /></td>
+              <td>£12.80</td>
+              <td><a>Kenya · Kiandu FCS</a></td>
+            </tr>
+            <tr><td colspan="5" style="color: var(--ink-3);"><a>+ add another lot to this blend (e.g. 10% Colombia for body)</a></td></tr>
+            <tr style="background: #fafaf5;">
+              <td colspan="2" style="text-align: right;"><b>Total green in:</b></td>
+              <td><b>8.0 kg</b></td>
+              <td><b>£102.40</b></td>
+              <td></td>
+            </tr>
+            <tr style="background: #fafaf5;">
+              <td colspan="2" style="text-align: right;"><b>Expected roasted out (yield 85%):</b></td>
+              <td><b>~6.8 kg</b></td>
+              <td colspan="2" style="color: var(--ink-3);">Yield is your roaster's 90-day average; adjust on completion.</td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+      <div>
+        <div class="box">
+          <h4>This batch will produce</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 8px;">Suggested pack plan based on current deficit (next 14 days):</p>
+          <table class="t">
+            <tr><th>SKU</th><th>Qty (bags)</th><th>Allocation</th></tr>
+            <tr><td>250g · Yirgacheffe · whole bean</td><td>27</td><td>FEFO · covers orders to Mon 21 Apr</td></tr>
+            <tr style="background: #fbf2e1;">
+              <td>1kg · Kenya AA · wholesale</td><td>0 (none planned)</td><td>—</td>
+            </tr>
+            <tr>
+              <td>Loose roasted (no pack)</td><td>~50g</td><td>House batch + QC samples</td>
+            </tr>
+          </table>
+        </div>
+
+        <div class="banner ok" style="margin-top: 12px;">
+          <b>All green lots used are EUDR-ready.</b> The Kenya AA lot has polygon, supplier risk assessment, and supporting docs. Any pack from this roast can ship to the EU without further work.
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <a class="btn">Schedule this roast</a>
+      <a class="btn ghost" style="margin-left: 6px;">Save as a plan (not committed)</a>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s22">← Previous</a>
+    <div>Up next: <a href="#s24">roast in progress →</a></div>
+    <a class="nav-btn" href="#s24">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"How do you plan which green lot to use for which coffee? FIFO? FEFO? Whatever's open?"</p>
+  <p class="listen">"If you blend a Kenyan with a Colombian for a customer, does the system knowing the lot genealogy matter to you, or is it bookkeeping?"</p>
+  <p class="listen">"What's the smallest thing the system could do here that would be most useful?"</p>
+</div>
+
+<!-- 2.4 Roast in progress -->
+<div class="frame" id="s24">
+  <div class="frame-head">
+    <div><span class="id">2.4</span> &nbsp; <span class="title">Roast in progress (timer view)</span></div>
+    <div class="step">Phase 2 of 3 · Screen 12 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a class="active">Daily board</a><a>Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Roast #NC-2026-04-14-B · in progress</h2><div class="crumb">Loring S15 · Kenya AA · started 10:02</div></div>
+
+    <div class="kpis">
+      <div class="card"><div class="label">Drop temp</div><div class="v">— <small>°C (charge 196)</small></div></div>
+      <div class="card"><div class="label">Time elapsed</div><div class="v">7:42 <small>of ~11:30</small></div></div>
+      <div class="card"><div class="label">RoR</div><div class="v">9.4 <small>°C/min</small></div></div>
+      <div class="card"><div class="label">Next event</div><div class="v">First crack <small>~10:30</small></div></div>
+    </div>
+
+    <div class="box">
+      <h4>Roast curve (live, from Loring S15 telemetry)</h4>
+      <div style="height: 160px; background: linear-gradient(to bottom, #fafaf5, #f4f4f1); border: 1px solid var(--line); border-radius: 4px; position: relative; overflow: hidden;">
+        <svg width="100%" height="100%" viewBox="0 0 800 160" preserveAspectRatio="none" style="display:block;">
+          <polyline fill="none" stroke="#2b3a55" stroke-width="2"
+            points="10,150 60,135 120,115 180,98 240,82 300,70 360,58 420,50 480,42 540,36 600,30 660,25 720,22 780,20" />
+          <polyline fill="none" stroke="#b07a3c" stroke-width="1.5" stroke-dasharray="3,3"
+            points="10,148 60,130 120,108 180,90 240,75 300,62 360,52 420,45 480,38 540,32 600,28 660,24 720,20 780,18" />
+        </svg>
+        <div style="position:absolute; left: 8px; top: 6px; font-size: 11px; color: var(--ink-3);">Bean temp °C</div>
+        <div style="position:absolute; right: 8px; top: 6px; font-size: 11px; color: var(--ink-3);">RoR °C/min</div>
+      </div>
+    </div>
+
+    <div class="row c2" style="margin-top: 12px;">
+      <div class="box">
+        <h4>Live log (tap to mark an event)</h4>
+        <ul style="margin: 0; padding: 0; list-style: none; font-size: 13px; line-height: 1.8;">
+          <li>✓ <b>10:02</b> · Charge · 196°C · 8.0 kg green</li>
+          <li>✓ <b>10:04</b> · Turning point · 92°C</li>
+          <li>✓ <b>10:08</b> · Yellowing · 154°C</li>
+          <li>✓ <b>10:13</b> · First crack start · 196°C</li>
+          <li>· <b>10:30</b> · First crack end · (pending)</li>
+          <li>· <b>~10:33</b> · Drop · (target 201°C)</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h4>Cup quality pre-checks</h4>
+        <p style="font-size: 13px; color: var(--ink-2); margin: 0;">Aroma developing: <b>blackcurrant, citrus zest</b> (matches reference). No scorch notes. RoR dropping cleanly. On profile.</p>
+        <a class="btn ghost small" style="margin-top: 6px;">Compare to reference profile</a>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s23">← Previous</a>
+    <div>Up next: <a href="#s25">roast complete →</a></div>
+    <a class="nav-btn" href="#s25">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"Do you currently record roast data anywhere? A notebook, an app, an Excel sheet, the roaster's own log?"</p>
+  <p class="listen">"When you change something from the standard profile, is that recorded so you can come back to it?"</p>
+  <p class="listen">"If you could see the cup quality of past roasts of this coffee linked to the data, would that be useful or just nice to have?"</p>
+</div>
+
+<!-- 2.5 Roast complete -->
+<div class="frame" id="s25">
+  <div class="frame-head">
+    <div><span class="id">2.5</span> &nbsp; <span class="title">Roast complete</span></div>
+    <div class="step">Phase 2 of 3 · Screen 13 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a class="active">Daily board</a><a>Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Roast #NC-2026-04-14-B · complete</h2><div class="crumb">10:33 · 6.84 kg roasted out · 85.5% yield</div></div>
+
+    <div class="banner ok">
+      <b>Roast logged.</b> 8.0 kg green in · 6.84 kg roasted out · 0.18 kg shrinkage (within expected range). This creates a <code>RoastedLot</code> ready for packing.
+    </div>
+
+    <div class="row c2">
+      <div class="box">
+        <h4>Result</h4>
+        <table class="t">
+          <tr><td>Green in</td><td>8.000 kg</td></tr>
+          <tr><td>Roasted out</td><td><input class="input" value="6.840" /></td></tr>
+          <tr><td>Shrinkage</td><td>0.160 kg (1.95% moisture loss) — within normal range</td></tr>
+          <tr><td>Yield</td><td>85.5% (90-day avg for Kenya AA on Loring: 85.2%)</td></tr>
+          <tr><td>Total time</td><td>11:31</td></tr>
+          <tr><td>Profile deviation</td><td>None significant · within ±2°C of reference</td></tr>
+        </table>
+      </div>
+
+      <div class="box">
+        <h4>Cost cascade (snapshotted)</h4>
+        <table class="t">
+          <tr><td>Green cost (snapshotted at roast start)</td><td>£102.40</td></tr>
+          <tr><td>Roasted cost per kg (new)</td><td>£14.97 / kg</td></tr>
+          <tr><td>Roasted cost per bag (250g)</td><td>£3.74 / bag</td></tr>
+          <tr style="background: #fafaf5;"><td><b>This snapshot is now locked</b></td><td colspan="2" style="color: var(--ink-3);">Even if Kenya AA prices move next month, this roast's bags always report at this cost.</td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="box" style="margin-top: 12px;">
+      <h4>Created entities</h4>
+      <div class="chain">
+        <div class="node"><b>Green lot</b>NLCC-2026-0418-KEN-AA<br>8.0 kg consumed<br>232 kg remaining</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Roast batch</b>#NC-2026-04-14-B<br>6.84 kg out · 85.5%</div>
+        <div class="arrow">→</div>
+        <div class="node" style="background: #f4faf5; border-color: #b0d3b6;"><b>Roasted lot</b>RO-2026-04-14-B<br>6.84 kg available<br>cost basis £14.97/kg</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <a class="btn">Start pack from this lot</a>
+      <a class="btn secondary" style="margin-left: 6px;">Add cupping notes</a>
+      <a class="btn ghost" style="margin-left: 6px;">View full genealogy</a>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s24">← Previous</a>
+    <div>Up next: <a href="#phase-3">Phase 3 — Fulfil an order into the EU →</a></div>
+    <a class="nav-btn" href="#phase-3">Next phase</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"When a roast is done, what's the next thing you do? Where do you put the coffee?"</p>
+  <p class="listen">"If a wholesale customer ever asks 'where did this bag come from', how do you answer today?"</p>
+  <p class="listen">"Is the 'yield' number useful to you? What would you do if it was 5% off your normal?"</p>
+</div>
+
+
+<!-- ============================================================== -->
+<!-- PHASE 3 — FULFIL AN ORDER INTO THE EU -->
+<!-- ============================================================== -->
+<div class="div" id="phase-3">
+  <h2>Phase 3 — Fulfil an order into the EU</h2>
+  <div class="sub">A wholesale order from a Berlin café arrives; the system computes what to pack, runs the EUDR scope check, and generates a signed Due Diligence Statement for the operator to sign and submit.</div>
+</div>
+
+<!-- 3.1 Orders queue -->
+<div class="frame" id="s31">
+  <div class="frame-head">
+    <div><span class="id">3.1</span> &nbsp; <span class="title">Orders queue</span></div>
+    <div class="step">Phase 3 of 3 · Screen 14 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a class="active">Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Open orders · 14 in queue</h2><div class="crumb">Showing orders due by Fri 18 Apr · filter: all channels</div></div>
+
+    <div class="row c4" style="margin-bottom: 12px;">
+      <div class="box tight"><div class="label" style="font-size: 11px; text-transform: uppercase; color: var(--ink-3); letter-spacing: 0.06em;">DTC</div><div style="font-size: 18px; font-weight: 600;">9</div></div>
+      <div class="box tight"><div class="label" style="font-size: 11px; text-transform: uppercase; color: var(--ink-3); letter-spacing: 0.06em;">Wholesale</div><div style="font-size: 18px; font-weight: 600;">4</div></div>
+      <div class="box tight"><div class="label" style="font-size: 11px; text-transform: uppercase; color: var(--ink-3); letter-spacing: 0.06em;">Subscription</div><div style="font-size: 18px; font-weight: 600;">1</div></div>
+      <div class="box tight" style="background: #fbf2e1;"><div class="label" style="font-size: 11px; text-transform: uppercase; color: var(--warn); letter-spacing: 0.06em;">EU / UK needing DDS</div><div style="font-size: 18px; font-weight: 600; color: var(--warn);">3</div></div>
+    </div>
+
+    <div class="box">
+      <table class="t">
+        <tr><th>Order #</th><th>Customer</th><th>Dest.</th><th>Channel</th><th>Lines</th><th>Promised</th><th>Status</th><th>Compliance</th><th></th></tr>
+        <tr style="background: #fbf2e1;">
+          <td><a><b>WS-2026-0421</b></a></td>
+          <td>Father &amp; Sons Café, Berlin DE</td>
+          <td>DE</td>
+          <td>Wholesale</td>
+          <td>3 SKUs · 64 bags</td>
+          <td>Wed 16 Apr</td>
+          <td><span class="pill info">allocated</span></td>
+          <td><span class="pill warn">DDS needed</span></td>
+          <td><a class="btn small">Open</a></td>
+        </tr>
+        <tr>
+          <td><a>WS-2026-0422</a></td>
+          <td>Café Saint-Honoré, Paris FR</td>
+          <td>FR</td>
+          <td>Wholesale</td>
+          <td>2 SKUs · 28 bags</td>
+          <td>Thu 17 Apr</td>
+          <td><span class="pill info">allocated</span></td>
+          <td><span class="pill warn">DDS needed</span></td>
+          <td><a class="btn small">Open</a></td>
+        </tr>
+        <tr style="background: #fbf2e1;">
+          <td><a>WS-2026-0423</a></td>
+          <td>Brew Republic, Dublin IE</td>
+          <td>IE</td>
+          <td>Wholesale</td>
+          <td>2 SKUs · 14 bags</td>
+          <td>Thu 17 Apr</td>
+          <td><span class="pill info">allocated</span></td>
+          <td><span class="pill warn">DDS needed (EU)</span></td>
+          <td><a class="btn small">Open</a></td>
+        </tr>
+        <tr>
+          <td><a>DTC-9821</a></td>
+          <td>Liam O'Brien</td>
+          <td>GB</td>
+          <td>Shopify</td>
+          <td>1 SKU · 2 bags</td>
+          <td>Tue 15 Apr</td>
+          <td><span class="pill neutral">received</span></td>
+          <td><span class="pill ok">n/a (GB)</span></td>
+          <td><a class="btn small">Open</a></td>
+        </tr>
+        <tr>
+          <td><a>DTC-9824</a></td>
+          <td>Priya Shah</td>
+          <td>GB</td>
+          <td>Shopify</td>
+          <td>1 SKU · 1 bag</td>
+          <td>Tue 15 Apr</td>
+          <td><span class="pill neutral">received</span></td>
+          <td><span class="pill ok">n/a (GB)</span></td>
+          <td><a class="btn small">Open</a></td>
+        </tr>
+        <tr>
+          <td><a>SUB-W12-2026</a></td>
+          <td>Weekly subscribers (×9)</td>
+          <td>GB × 7, IE × 1, DE × 1</td>
+          <td>Subscription</td>
+          <td>3 SKUs · 17 bags</td>
+          <td>Mon 14 Apr</td>
+          <td><span class="pill info">allocated</span></td>
+          <td><span class="pill warn">1 DDS needed (DE)</span></td>
+          <td><a class="btn small">Open</a></td>
+        </tr>
+      </table>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s25">← Phase 2 last</a>
+    <div>Up next: <a href="#s32">order detail →</a></div>
+    <a class="nav-btn" href="#s32">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"How do you currently see all open orders in one place? Spreadsheet? Shopify admin. Email? Memory?"</p>
+  <p class="listen">"When a wholesale customer changes their order last-minute, what's the workflow?"</p>
+  <p class="listen">"If you saw a '3 orders need DDS' banner every morning, would that become noise or would you act on it?"</p>
+</div>
+
+<!-- 3.2 Order detail (allocate) -->
+<div class="frame" id="s32">
+  <div class="frame-head">
+    <div><span class="id">3.2</span> &nbsp; <span class="title">Order detail (allocate from stock)</span></div>
+    <div class="step">Phase 3 of 3 · Screen 15 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a class="active">Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>WS-2026-0421 · Father &amp; Sons Café, Berlin</h2><div class="crumb">Promised Wed 16 Apr · 3 lines · 64 bags · destination: DE</div></div>
+
+    <div class="banner info">
+      <b>Customer note:</b> "Bitte 2 Beutel zusätzlich von der Yirgacheffe falls möglich — danke!" (auto-translated)
+    </div>
+
+    <div class="box">
+      <h4>Order lines &amp; allocation</h4>
+      <table class="t">
+        <tr><th>SKU</th><th>Qty</th><th>Source</th><th>Available</th><th>Allocation</th><th>Cost / bag</th><th>Subtotal</th></tr>
+        <tr>
+          <td>250g · Yirgacheffe · whole bean</td>
+          <td>20</td>
+          <td>PKG-2026-04-11-YG-WB (from RO-2026-04-10-B)</td>
+          <td>34 bags</td>
+          <td><span class="pill ok">auto-allocated · FEFO</span></td>
+          <td>£3.74</td>
+          <td>£74.80</td>
+        </tr>
+        <tr>
+          <td>1kg · Yirgacheffe · wholesale</td>
+          <td>10</td>
+          <td>PKG-2026-04-11-YG-1K (from RO-2026-04-10-B)</td>
+          <td>14 bags</td>
+          <td><span class="pill ok">auto-allocated</span></td>
+          <td>£14.05</td>
+          <td>£140.50</td>
+        </tr>
+        <tr style="background: #fbf2e1;">
+          <td>250g · Colombia Huila · whole bean</td>
+          <td>30 (32 with +2)</td>
+          <td>— (insufficient stock)</td>
+          <td>22 bags</td>
+          <td><span class="pill warn">partial · needs 8 more</span></td>
+          <td>£3.62</td>
+          <td>£108.60 + £28.96</td>
+        </tr>
+        <tr>
+          <td>250g · Yirgacheffe · ground (customer note)</td>
+          <td>2 (free)</td>
+          <td>PKG-2026-04-11-YG-GR</td>
+          <td>5 bags</td>
+          <td><span class="pill ok">allocated</span></td>
+          <td>£0.00 (comp)</td>
+          <td>£0.00</td>
+        </tr>
+        <tr style="background: #fafaf5;">
+          <td colspan="6" style="text-align: right;"><b>Order subtotal (ex-VAT, ex-DDP):</b></td>
+          <td><b>£352.86</b></td>
+        </tr>
+        <tr>
+          <td colspan="7" style="font-size: 12px; color: var(--ink-3);">
+            VAT note: customer VAT DE123456789 verified via VIES 2026-03-01 · reverse charge · invoice will be issued with 0% VAT, customer's accountant self-accounts in DE.
+            <a>view VAT validation log</a>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <div class="row c2" style="margin-top: 12px;">
+      <div class="box">
+        <h4>Allocation summary</h4>
+        <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 6px;">✓ 32 bags ready to pack from current stock</p>
+        <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 6px;">⚠ 8 more bags of Colombia Huila needed — system recommends adding to Mon 14 Apr's roast (currently scheduled 7 kg green, can absorb +2 kg)</p>
+        <p style="font-size: 13px; color: var(--ink-2); margin: 0;">ℹ Customer's +2 bag request auto-accepted (no approval needed for ≤5% line-qty uplift from a verified B2B customer)</p>
+      </div>
+      <div class="box">
+        <h4>Delivery &amp; shipping</h4>
+        <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 6px;">DPD Express · 1 working day · £18.50 (allocated cost)</p>
+        <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 6px;">Customer's standing instruction: leave at door if closed</p>
+        <p style="font-size: 13px; color: var(--ink-2); margin: 0;">Customs: DDP · EORI GB123456789 · export declaration via broker</p>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <a class="btn">Proceed to pack</a>
+      <a class="btn secondary" style="margin-left: 6px;">Edit order</a>
+      <a class="btn ghost" style="margin-left: 6px;">Print quote</a>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s31">← Previous</a>
+    <div>Up next: <a href="#s33">pack workflow →</a></div>
+    <a class="nav-btn" href="#s33">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"How do you currently decide which stock to allocate to which order? First-come-first-served? Whatever's closest to expiry?"</p>
+  <p class="listen">"How do you handle a customer note in German/French/Dutch today?"</p>
+  <p class="listen">"Does VAT handling for B2B EU customers feel like a headache? Do you know about reverse charge?"</p>
+</div>
+
+<!-- 3.3 Pack workflow -->
+<div class="frame" id="s33">
+  <div class="frame-head">
+    <div><span class="id">3.3</span> &nbsp; <span class="title">Pack workflow (scan)</span></div>
+    <div class="step">Phase 3 of 3 · Screen 16 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a class="active">Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Pack · WS-2026-0421</h2><div class="crumb">3 of 4 lines done · 1 line remaining (Colombia Huila · need 8 more bags)</div></div>
+
+    <div class="row c12" style="grid-template-columns: 1fr 320px;">
+      <div>
+        <div class="box">
+          <h4>Scan workflow</h4>
+          <div style="background: #1a1a1a; color: #fff; padding: 16px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 14px;">
+            &gt; Scan packaged lot<br>
+            <span style="color: #7dcea0;">[beep] PKG-2026-04-11-YG-WB · 250g Yirgacheffe · 34 in stock</span><br>
+            &gt; Select order line<br>
+            <span style="color: #7dcea0;">[tap] WS-2026-0421 · line 1 · 20 bags</span><br>
+            &gt; Confirm<br>
+            <span style="color: #7dcea0;">[beep] 20 bags allocated. Box weight 4.92 kg (incl. packaging).</span>
+          </div>
+          <div style="margin-top: 10px; font-size: 13px; color: var(--ink-2);">
+            ✓ Line 1 · 250g Yirgacheffe WB · 20 of 20<br>
+            ✓ Line 2 · 1kg Yirgacheffe · 10 of 10<br>
+            ✓ Line 4 · 250g Yirgacheffe ground · 2 of 2<br>
+            ⚠ Line 3 · 250g Colombia Huila · 22 of 30 (8 short)<br>
+          </div>
+        </div>
+
+        <div class="box" style="margin-top: 12px;">
+          <h4>Box &amp; shipping label</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 6px;">Box: 1 of 2 · 5.2 kg · 30 × 25 × 18 cm · dimensions auto-suggested by box-sizing algorithm from line weights</p>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 6px;">DPD label · tracking will print after compliance step (next screen)</p>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0;">Customs docs: <b>blocked pending DDS</b></p>
+        </div>
+      </div>
+
+      <div>
+        <div class="box" style="background: #fbf2e1; border-color: var(--note-line);">
+          <h4 style="color: var(--warn);">Compliance gate ahead</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 8px;">This shipment is destined for Germany (EU). The system will now check whether all green lots feeding this order have a complete EUDR reference, and if so, draft a Due Diligence Statement for your review.</p>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 8px;">You cannot print the customs documents until the DDS is signed.</p>
+          <a class="btn" style="background: var(--warn); border-color: var(--warn);">Run compliance check →</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s32">← Previous</a>
+    <div>Up next: <a href="#s34">in-scope check →</a></div>
+    <a class="nav-btn" href="#s34">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"How do you actually pack today? Do you use scales, scanners, paper pick lists?"</p>
+  <p class="listen">"What's the slowest part of packing? The scan step, the weighing, the label printing, the box choice?"</p>
+  <p class="listen">"When a shipment is going abroad, how do you know what customs docs to include?"</p>
+</div>
+
+<!-- 3.4 In-scope check -->
+<div class="frame" id="s34">
+  <div class="frame-head">
+    <div><span class="id">3.4</span> &nbsp; <span class="title">In-scope check (EU / UK FRC?)</span></div>
+    <div class="step">Phase 3 of 3 · Screen 17 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a class="active">Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Compliance scope check · WS-2026-0421</h2><div class="crumb">Berlin DE · checking EUDR applicability</div></div>
+
+    <div class="box">
+      <h4>Scope decision</h4>
+      <table class="t">
+        <tr><td>Destination country</td><td>DE (Germany) — EU member state</td></tr>
+        <tr><td>Is the destination in scope for EUDR?</td><td><span class="pill ok">YES — coffee placed on the EU market</span></td></tr>
+        <tr><td>Effective date</td><td>30 December 2026</td></tr>
+        <tr><td>Type of shipment</td><td>B2B · wholesale · 1.1 kg shipped (above negligible quantity threshold of 1 kg)</td></tr>
+        <tr><td>Operator of record</td><td>North London Coffee Co. (you) — first placer on the EU market</td></tr>
+        <tr><td>Action required</td><td>Generate and submit a Due Diligence Statement (DDS) before customs clearance</td></tr>
+      </table>
+    </div>
+
+    <div class="box" style="margin-top: 12px;">
+      <h4>Green lots feeding this shipment</h4>
+      <table class="t">
+        <tr><th>Lot</th><th>Producer</th><th>Country</th><th>Risk</th><th>Polygon</th><th>Supplier DDS ref</th><th>Status</th></tr>
+        <tr>
+          <td>NLCC-2026-0404-ETH-YG-AB</td>
+          <td>Kebede Beriti Washing Station, Yirgacheffe</td>
+          <td>ET</td>
+          <td><span class="pill ok">low</span></td>
+          <td>3rd-party verified · 2025-12-04</td>
+          <td>ETH-SID-2025-4412</td>
+          <td><span class="pill ok">ready</span></td>
+        </tr>
+        <tr>
+          <td>NLCC-2026-0418-KEN-AA</td>
+          <td>Kiandu FCS</td>
+          <td>KE</td>
+          <td><span class="pill ok">low</span></td>
+          <td>3rd-party verified · 2025-09-12</td>
+          <td>KEN-NYE-2025-3309</td>
+          <td><span class="pill ok">ready</span></td>
+        </tr>
+        <tr>
+          <td>NLCC-2026-0330-COL-HUI</td>
+          <td>Asociación La Esperanza, Huila</td>
+          <td>CO</td>
+          <td><span class="pill warn">standard</span></td>
+          <td>3rd-party verified · 2025-08-20</td>
+          <td>COL-HUI-2025-2210</td>
+          <td><span class="pill ok">ready</span></td>
+        </tr>
+        <tr style="background: #f4faf5;">
+          <td colspan="7"><b>All three lots are EUDR-ready.</b> No missing data. No outstanding actions.</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <a class="btn">Generate DDS draft →</a>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s33">← Previous</a>
+    <div>Up next: <a href="#s35">DDS draft →</a></div>
+    <a class="nav-btn" href="#s35">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"Have you heard of EUDR before? In one sentence, what's your understanding of it?"</p>
+  <p class="listen">"When you read 'all three lots are EUDR-ready', does that give you confidence or feel like jargon?"</p>
+  <p class="listen">"If this check failed on one lot, what would you expect to happen?"</p>
+</div>
+
+<!-- 3.4a NEW — Per-shipment opt-out decision (friction path) -->
+<div class="frame" id="s34a">
+  <div class="frame-head">
+    <div><span class="id">3.4a</span> &nbsp; <span class="title">Per-shipment opt-out (the friction path)</span></div>
+    <div class="step">Phase 3 of 3 · Screen 17 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a class="active">Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster · role: head_roaster ✓</div>
+    </div>
+
+    <div class="page-h"><h2>Per-shipment opt-out · WS-2026-0421</h2><div class="crumb">This will be recorded in your audit log</div></div>
+
+    <div class="banner bad">
+      <b>This shipment is in scope for EUDR.</b> Destination: Berlin, DE. Net mass: 14.36 kg (above 1 kg threshold). One of the green lots (NLCC-2026-0404-ETH-YG-AB) doesn't have a current risk assessment on file, so the standard DDS path is blocked.
+    </div>
+
+    <div class="cols c12">
+      <div>
+        <div class="box" style="background: #fdf5e6; border-color: var(--note-line);">
+          <h4 style="color: var(--warn);">What you're about to do</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 8px;">To ship this without a Due Diligence Statement, we need you to confirm a few things. This will create a permanent, signed record in your audit log.</p>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0;">If a regulator later asks why this shipment did not have a DDS, you will be able to show them this record: the signed opt-out audit pack, with the reason, the role, the timestamp, and the chain of custody.</p>
+        </div>
+
+        <div class="box" style="margin-top: 12px;">
+          <h4>1. Why is this shipment not getting a DDS? <span style="color: var(--bad);">*</span></h4>
+          <div style="font-size: 13px;">
+            <label style="display: block; padding: 6px 0;">
+              <input type="radio" name="reason" /> Not for resale (sample, gift, internal QC, internal use)
+            </label>
+            <label style="display: block; padding: 6px 0;">
+              <input type="radio" name="reason" /> Returned goods
+            </label>
+            <label style="display: block; padding: 6px 0;">
+              <input type="radio" name="reason" /> Transit only (passing through EU to a non-EU destination)
+            </label>
+            <label style="display: block; padding: 6px 0;">
+              <input type="radio" name="reason" /> Personal use (this is <i>your</i> coffee, not a customer's)
+            </label>
+            <label style="display: block; padding: 6px 0;">
+              <input type="radio" name="reason" /> Coffee from a pre-EUDR stock purchased before 30 June 2025
+            </label>
+            <label style="display: block; padding: 6px 0;">
+              <input type="radio" name="reason" checked /> <b>Other — please describe (up to 500 characters)</b>
+            </label>
+          </div>
+          <textarea class="input" rows="3" style="margin-top: 6px;">This is a one-off order for a long-standing wholesale customer (Father &amp; Sons, Berlin — 3 years of weekly orders). The Yirgacheffe lot came from a new supplier (Origin &amp; Bean Co.) that we have not yet risk-assessed. The shipment is genuine B2B wholesale; the missing paperwork is on our side, not the customer's. We are completing the supplier onboarding this week.</textarea>
+          <div style="font-size: 11px; color: var(--ink-3); margin-top: 4px;">421 / 500 characters</div>
+        </div>
+
+        <div class="box" style="margin-top: 12px;">
+          <h4>2. Who is making this decision?</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 4px;">Aisha (you) — <span class="pill ok">head_roaster</span> ✓</p>
+          <p style="font-size: 12px; color: var(--ink-3); margin: 0;">Your role qualifies for this decision. <code>packer</code> and <code>accountant</code> roles cannot take this action. <code>readonly</code> cannot either. The decision is attributed to you by name and role in the audit pack.</p>
+        </div>
+
+        <div class="box" style="margin-top: 12px; background: #fff8e6; border-color: var(--note-line);">
+          <h4>3. Confirm: type the phrase below exactly <span style="color: var(--bad);">*</span></h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0 0 8px;">You must type this phrase. The system is matching your input character-by-character against the required text. The phrase is the legal acknowledgement that goes into the audit pack.</p>
+          <div style="background: #fff; border: 1px dashed var(--ink-3); padding: 10px 12px; border-radius: 4px; font-family: ui-monospace, monospace; font-size: 12.5px; color: var(--ink); margin-bottom: 8px;">
+            I confirm this shipment does not require a Due Diligence Statement under EUDR. I am the operator of record.
+          </div>
+          <input class="input" placeholder="Type the phrase exactly" value="I confirm this shipment does not require a Due Diligence Statement under EUDR. I am the operator of record." />
+          <div style="font-size: 11px; color: var(--ok); margin-top: 4px;">✓ Matches required phrase</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="box">
+          <h4>What happens after you confirm</h4>
+          <ol style="margin: 0 0 0 18px; padding: 0; font-size: 13px; line-height: 1.8;">
+            <li>The system records a <code>ShipmentEudrDecision</code> with your reason, your role, and the timestamp.</li>
+            <li>A signed <b>opt-out audit pack</b> is generated (2-3 page PDF).</li>
+            <li>An entry is written to the tamper-evident audit log.</li>
+            <li>The shipment unblocks; the DPD label can print; the box can leave.</li>
+            <li>Father &amp; Sons get a read-only link to the audit pack on the wholesale portal (if you choose to share).</li>
+          </ol>
+        </div>
+
+        <div class="banner warn" style="margin-top: 12px;">
+          <b>You can still change your mind.</b> If you later decide to file a DDS for this shipment anyway, the system creates a new decision linking to this one. The original opt-out record is preserved; the new one supersedes it.
+        </div>
+
+        <div class="banner info" style="margin-top: 12px;">
+          <b>Why the friction is here.</b> The system has to make this decision *deliberate* so that a regulator, a year from now, can see exactly who decided what and why. The friction isn't user-hostile — it's the difference between "we have a record" and "we don't know this happened."
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <a class="btn" style="background: var(--ok); border-color: var(--ok);">Take this decision</a>
+      <a class="btn secondary" style="margin-left: 6px;">Cancel — go back</a>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s34">← Previous</a>
+    <div>Up next: <a href="#s34b">opt-out acknowledged →</a></div>
+    <a class="nav-btn" href="#s34b">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"Reading this screen, what does it ask you to do? Is it clear what the consequences are?"</p>
+  <p class="listen">"Is the friction proportionate to a one-off situation, or is it more than you'd expect?"</p>
+  <p class="listen">"If you were the regulator reading the resulting audit pack, would it be clear why this decision was taken?"</p>
+  <p class="listen">"Would you want a button to bypass this — 'just opt it out, I trust this customer'? Why or why not?"</p>
+  <p class="listen">"How long do you think this would take you in real life? More than 3 minutes is too much."</p>
+</div>
+
+<!-- 3.4b NEW — Opt-out acknowledged / audit pack generated -->
+<div class="frame" id="s34b">
+  <div class="frame-head">
+    <div><span class="id">3.4b</span> &nbsp; <span class="title">Opt-out acknowledged — the audit pack is the artefact</span></div>
+    <div class="step">Phase 3 of 3 · Screen 18 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a class="active">Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Opt-out recorded · WS-2026-0421</h2><div class="crumb">You can now ship this order. The record is permanent.</div></div>
+
+    <div class="banner ok">
+      <b>Decision recorded.</b> Hash of record: <code>0x9f3a…b27e</code>. Timestamp: 2026-04-14 12:18:04 BST. Operator: Aisha. Role: <code>head_roaster</code>. The opt-out audit pack is signed and available below. The shipment is unblocked.
+    </div>
+
+    <div class="cols c12">
+      <div class="box">
+        <h4>Decision summary</h4>
+        <table class="t">
+          <tr><td>Shipment</td><td>WS-2026-0421 · Berlin DE · 14.36 kg</td></tr>
+          <tr><td>Decision</td><td><span class="pill warn">opt_out (per-shipment)</span></td></tr>
+          <tr><td>Reason</td><td>Other — long-standing customer, missing supplier risk assessment on our side, completing onboarding this week</td></tr>
+          <tr><td>Decided by</td><td>Aisha · role: <code>head_roaster</code></td></tr>
+          <tr><td>Decided at</td><td>2026-04-14 12:18:04 BST</td></tr>
+          <tr><td>Confirmation phrase</td><td style="font-family: ui-monospace, monospace; font-size: 11.5px;">"I confirm this shipment does not require a Due Diligence Statement under EUDR. I am the operator of record."</td></tr>
+          <tr><td>Audit pack</td><td><a>opt-out-pack-WS-2026-0421-2026-04-14.pdf</a> (signed)</td></tr>
+          <tr><td>Retention</td><td>5 years (EUDR Article 9) — until 2031-04-14</td></tr>
+        </table>
+      </div>
+
+      <div>
+        <div class="box">
+          <h4>What the audit pack contains (for a regulator)</h4>
+          <ol style="margin: 0 0 0 18px; padding: 0; font-size: 13px; line-height: 1.7;">
+            <li><b>Cover page:</b> org name, shipment ID, destination, date, the legal acknowledgement text, the signature, a verification QR code.</li>
+            <li><b>Lot genealogy:</b> the chain from the green lot(s) through the roast, the packaged lot, the order line, to the shipment.</li>
+            <li><b>Reason:</b> the reason code and the free-text reason as recorded.</li>
+            <li><b>User record:</b> who decided, what role, when.</li>
+            <li><b>Hash chain:</b> the prior audit-log entry's hash and the new entry's hash, demonstrating the chain of custody.</li>
+          </ol>
+          <div style="margin-top: 10px;">
+            <a class="btn small">Download PDF</a>
+            <a class="btn secondary small" style="margin-left: 4px;">Share with Father &amp; Sons (signed link)</a>
+          </div>
+        </div>
+
+        <div class="box" style="margin-top: 12px; background: #f4faf5; border-color: #b0d3b6;">
+          <h4 style="color: var(--ok);">This is the document you'd show a regulator</h4>
+          <p style="font-size: 13px; color: var(--ink-2); margin: 0;">If HMRC or an EU regulator ever asks "why did this shipment not have a DDS?", you open the compliance dashboard, find this shipment, and download the audit pack. The pack is 2-3 pages, signed, and contains everything they need to see — including the full lot genealogy. No fire drill, no spreadsheet hunt, no "let me find the email from 2026".</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <a class="btn">Continue to ship</a>
+      <a class="btn secondary" style="margin-left: 6px;">Change your mind — file a DDS instead</a>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s34a">← Previous</a>
+    <div>Up next: <a href="#s35">DDS draft (the standard path) →</a></div>
+    <a class="nav-btn" href="#s35">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"Reading the audit pack contents, is there anything missing that you'd want a regulator to see?"</p>
+  <p class="listen">"Would you share this with Father &amp; Sons via the signed link? Why or why not?"</p>
+  <p class="listen">"How would you feel if, 18 months from now, you had to find this audit pack in a hurry? Confident, or worried?"</p>
+  <p class="listen">"If you were doing this once a week, would it feel like routine, or would you still pause and read it each time?"</p>
+</div>
+
+<!-- 3.5 DDS draft auto-generated -->
+<div class="frame" id="s35">
+  <div class="frame-head">
+    <div><span class="id">3.5</span> &nbsp; <span class="title">DDS draft auto-generated</span></div>
+    <div class="step">Phase 3 of 3 · Screen 18 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="appbar">
+      <div class="logo">☕ North London Coffee Co.</div>
+      <nav><a>Daily board</a><a class="active">Orders</a><a>Stock</a><a>Receive green</a><a>Customers</a><a>Compliance</a><a>Reports</a></nav>
+      <div class="me">Aisha · head roaster</div>
+    </div>
+
+    <div class="page-h"><h2>Due Diligence Statement · draft</h2><div class="crumb">DDS-NLCC-2026-0421-DE-001 · for review &amp; signing</div></div>
+
+    <div class="banner warn">
+      <b>Review the generated DDS.</b> All EUDR-required fields are populated from your system records. You can edit the risk narrative. Once you sign, the system packages the DDS with the lot genealogy and a signed manifest into an audit pack.
+    </div>
+
+    <div class="box">
+      <h4>DDS contents (auto-generated · editable)</h4>
+      <table class="t">
+        <tr><th>Field</th><th>Value</th><th>Source</th></tr>
+        <tr><td>Operator (legal name)</td><td>North London Coffee Co. Ltd</td><td>Organisation profile</td></tr>
+        <tr><td>Operator address</td><td>12 Stoke Newington Road, London N16 7XJ, GB</td><td>Organisation profile</td></tr>
+        <tr><td>Operator EORI</td><td>GB123456789</td><td>Organisation profile</td></tr>
+        <tr><td>Operator VAT</td><td>GB987654321</td><td>Organisation profile</td></tr>
+        <tr><td>Consignee</td><td>Father &amp; Sons Café GmbH, Kastanienallee 12, 10435 Berlin, DE</td><td>Order WS-2026-0421</td></tr>
+        <tr><td>Consignee EORI / VAT</td><td>DE123456789 (VIES-verified 2026-03-01)</td><td>Customer profile</td></tr>
+        <tr><td>Product description</td><td>Roasted coffee, whole bean and ground, in bags of 250g and 1kg</td><td>Order lines</td></tr>
+        <tr><td>HS code</td><td>0901.21 (roasted, not decaffeinated)</td><td>Default for SKU category</td></tr>
+        <tr><td>Net mass</td><td>14.36 kg</td><td>Order lines, kg of coffee</td></tr>
+        <tr><td>Country of harvest</td><td>ET, KE, CO (multi-origin)</td><td>EudrReferenceData · 3 lots</td></tr>
+        <tr><td>Geolocation (polygons)</td><td>3 polygons · 0.21 km² (KE), 0.18 km² (ET), 0.31 km² (CO) · <a>view all</a></td><td>Producer records</td></tr>
+        <tr><td>Upstream DDS references</td><td>ETH-SID-2025-4412 · KEN-NYE-2025-3309 · COL-HUI-2025-2210</td><td>Supplier records</td></tr>
+        <tr><td>Risk assessment summary</td><td><i>All three source lots are from low-risk countries (ET, KE, CO) with 3rd-party verified geolocation within the last 12 months. Two are direct supplier relationships (no intermediaries); one is sourced via Sucafina Specialty EU with full chain of custody documentation. No indicators of deforestation risk have been identified. Mitigations in place: annual supplier risk reviews, 3rd-party geolocation verification, RA/Organic certification on the cooperative lots.</i> <a>edit</a></td><td>Auto-generated from supplier + producer records</td></tr>
+      </table>
+    </div>
+
+    <div class="row c2" style="margin-top: 12px;">
+      <div class="box">
+        <h4>Before signing</h4>
+        <label class="f"><input type="checkbox" checked /> I confirm the risk assessment is accurate to the best of my knowledge</label>
+        <label class="f"><input type="checkbox" checked /> I confirm the geolocation data has been verified within the last 12 months</label>
+        <label class="f"><input type="checkbox" /> I confirm the upstream DDS references are valid (optional but recommended)</label>
+      </div>
+      <div class="box">
+        <h4>What happens after I sign</h4>
+        <ul style="margin: 0 0 0 18px; padding: 0; font-size: 13px; line-height: 1.7;">
+          <li>System creates a signed <b>audit pack</b> (DDS + lot genealogy + supporting docs + signed manifest)</li>
+          <li>You submit the DDS to the EU Information System manually (v1) or via the API (v1.5)</li>
+          <li>Customs docs unlock; shipping label can print</li>
+          <li>Wholesale customer gets a read-only link to the audit pack on the portal</li>
+          <li>Record is retained for 5 years (EUDR Article 9)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <a class="btn" style="background: var(--ok); border-color: var(--ok);">Sign &amp; generate audit pack</a>
+      <a class="btn secondary" style="margin-left: 6px;">Save draft · return to it</a>
+      <a class="btn ghost" style="margin-left: 6px;">Print preview (PDF)</a>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s34">← Previous</a>
+    <div>End of click-through. <a href="#s36">→ Continue to sign &amp; ship</a> (optional extension screens)</div>
+    <a class="nav-btn" href="#s36">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"If you saw this screen tomorrow, what would be the first thing you'd change?"</p>
+  <p class="listen">"The risk narrative is auto-generated. Would you trust it as-is, or always want to edit it?"</p>
+  <p class="listen">"Is the '3 confirmations' before signing helpful, or does it feel like legal theatre?"</p>
+  <p class="listen">"Would you want your wholesale customers to see this audit pack via a link? What would they do with it?"</p>
+</div>
+
+<!-- ============================================================== -->
+<!-- OPTIONAL — SIGN & SHIP (collapsed) -->
+<!-- ============================================================== -->
+<div class="div">
+  <h2>Optional extension screens</h2>
+  <div class="sub">If the conversation has time, walk through these — they complete the loop. Otherwise the click-through is functional without them.</div>
+</div>
+
+<!-- 3.6 Sign & audit pack (light) -->
+<div class="frame" id="s36">
+  <div class="frame-head">
+    <div><span class="id">3.6</span> &nbsp; <span class="title">Sign &amp; generate audit pack</span></div>
+    <div class="step">Extension · Screen 19 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="banner ok">
+      <b>DDS signed.</b> Hash of record: <code>0x9f3a…b27e</code>. Timestamp: 2026-04-14 12:18:04 BST. Operator: Aisha. The audit pack is now available.
+    </div>
+
+    <div class="row c2">
+      <div class="box">
+        <h4>Audit pack contents (for WS-2026-0421)</h4>
+        <ul style="margin: 0 0 0 18px; padding: 0; font-size: 13px; line-height: 1.7;">
+          <li>DDS-NLCC-2026-0421-DE-001 (signed JSON + PDF)</li>
+          <li>Lot genealogy chart (3 green lots → 1 shipment)</li>
+          <li>Supplier due-diligence files (Hasbean, Sucafina)</li>
+          <li>Producer geolocation polygons (3 GeoJSON files)</li>
+          <li>Stock movement history (chain of custody)</li>
+          <li>Signed manifest (hash-chained)</li>
+        </ul>
+        <div style="margin-top: 10px;">
+          <a class="btn small">Download PDF</a>
+          <a class="btn secondary small" style="margin-left: 4px;">Share with customer (signed link)</a>
+        </div>
+      </div>
+      <div class="box">
+        <h4>Next steps for this shipment</h4>
+        <ul style="margin: 0 0 0 18px; padding: 0; font-size: 13px; line-height: 1.7;">
+          <li>Submit DDS to the EU Information System (manual for v1)</li>
+          <li>Print customs documents (commercial invoice + packing list)</li>
+          <li>Print DPD shipping label</li>
+          <li>Schedule pickup for tomorrow morning</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s35">← Previous</a>
+    <div>Up next: <a href="#s37">ship &amp; post-ship →</a></div>
+    <a class="nav-btn" href="#s37">Next</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"If you could send this audit pack to your customer with one click, would you? What would they do with it?"</p>
+  <p class="listen">"When you file a DDS with the regulator, how do you currently do it? Portal, broker, accountant?"</p>
+</div>
+
+<!-- 3.7 Ship & post-ship (light) -->
+<div class="frame" id="s37">
+  <div class="frame-head">
+    <div><span class="id">3.7</span> &nbsp; <span class="title">Ship &amp; post-ship</span></div>
+    <div class="step">Extension · Screen 20 of 21</div>
+  </div>
+  <div class="frame-body">
+    <div class="banner ok">
+      <b>Shipment dispatched.</b> DPD tracking: <code>GB00XX1234567</code>. Pickup confirmed for 15:30 today. DDS submission pending — you'll do that from the compliance dashboard after this.
+    </div>
+
+    <div class="box">
+      <h4>Order · post-ship state</h4>
+      <table class="t">
+        <tr><td>Order</td><td>WS-2026-0421 · Father &amp; Sons Café, Berlin</td></tr>
+        <tr><td>Status</td><td><span class="pill ok">shipped</span></td></tr>
+        <tr><td>Carrier</td><td>DPD Express · 1 working day · £18.50</td></tr>
+        <tr><td>Customs</td><td>DDP · export declaration via broker · DDS pending submission</td></tr>
+        <tr><td>Invoice</td><td>Draft created in Xero · awaiting payment · due 2026-04-28</td></tr>
+        <tr><td>VAT treatment</td><td>Reverse charge · 0% · customer self-accounts in DE</td></tr>
+        <tr><td>Margin (this order)</td><td>£352.86 revenue · £186.40 cost of goods · £18.50 shipping · <b>£147.96 gross margin (42%)</b></td></tr>
+      </table>
+    </div>
+
+    <div class="row c2" style="margin-top: 12px;">
+      <div class="box">
+        <h4>What the system remembers</h4>
+        <ul style="margin: 0 0 0 18px; padding: 0; font-size: 13px; line-height: 1.7;">
+          <li>The 14.36 kg of coffee in this shipment is permanently attributed to 3 specific green lots</li>
+          <li>Margin on this order is locked at 42% (will not change if green prices move)</li>
+          <li>The DDS, audit pack, and chain of custody are retained for 5 years</li>
+          <li>If a regulator audits the lot in 2030, the system produces the full record in 30 seconds</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h4>If a recall happened next year</h4>
+        <p style="font-size: 13px; color: var(--ink-2); margin: 0;">Recall the green lot NLCC-2026-0404-ETH-YG-AB → the system surfaces every shipment that contains it, every customer it went to, and every DDS that cited it. One query, signed PDF, regulator-ready.</p>
+      </div>
+    </div>
+  </div>
+  <div class="frame-foot">
+    <a class="nav-btn" href="#s36">← Previous</a>
+    <div>End of click-through.</div>
+    <a class="nav-btn" href="#">↑ Top</a>
+  </div>
+</div>
+
+<div class="notes">
+  <h5>Interviewer — listen for</h5>
+  <p class="listen">"Has a wholesale customer ever come back to you months later asking for a compliance document? What did you do?"</p>
+  <p class="listen">"If a regulator called you today and asked 'show me every shipment of Ethiopian coffee you sent to Germany in 2026', how long would it take?"</p>
+  <p class="listen">"Anything in this whole flow that would have made the last 12 months easier?"</p>
+</div>
+
+<!-- ============================================================== -->
+<!-- FOOTER -->
+<!-- ============================================================== -->
+<div style="max-width: var(--screen); margin: 60px auto 40px; padding: 0 40px; color: var(--ink-3); font-size: 12px;">
+  <p>North London Coffee Co. Click-through Prototype · v1.0 · Companion to PRD v1.1</p>
+  <p>This document is a wireframe, not a design. The layout, type, and visual treatment are intentionally low-fidelity; the goal is to test whether each step makes sense to a real roaster, not to specify a UI.</p>
+  <p>Use this in the Week 3 prototype walkthrough of the validation plan (§13.2 of the PRD). Capture per-screen reactions in the interviewer notes blocks.</p>
+</div>
+
+</body>
+</html>
