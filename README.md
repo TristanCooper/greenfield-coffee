@@ -41,13 +41,14 @@ pnpm dev      # http://localhost:3000
 
 ## Deploy (Vercel)
 
-Vercel project config lives in `vercel.json` at the repo root. With this
-file committed, the Vercel project must be imported with **Root Directory
-set to `apps/web`** (NOT the repo root) so Vercel's framework detector
-finds `next` in `apps/web/package.json`. `vercel.json` then:
+Vercel project config lives in `vercel.json` at the repo root. The Vercel
+project must be imported with **Root Directory set to `apps/web`** (NOT
+the repo root) — this is what lets Vercel's framework detector find
+`next` in `apps/web/package.json`. `vercel.json` then:
 
-- `cd ../..` before `pnpm install` / `pnpm --filter @greenfield/web build`
-  — pnpm's hoisted store lives at the repo root, not under `apps/web`.
+- Runs `pnpm install --frozen-lockfile` and `pnpm --filter @greenfield/web build`
+  (no `cd` prefix — Vercel executes commands from the repo root, where the
+  pnpm hoisted store and workspace manifest live).
 - Sets `outputDirectory: ".next"` — relative to the Root Directory
   (`apps/web`), so it resolves to `apps/web/.next` on disk.
 
