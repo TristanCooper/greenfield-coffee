@@ -38,3 +38,13 @@ pnpm dev      # http://localhost:3000
 
 - Node 20 LTS (see `.nvmrc`)
 - pnpm 11 (see `packageManager` in root `package.json`)
+
+## Deploy (Vercel)
+
+Vercel project config lives in `vercel.json` at the repo root. With this
+file committed, the Vercel project should be imported with **Root
+Directory left at the repo root** (not `apps/web`) — Vercel then runs
+`pnpm --filter @greenfield/web build` and reads the output from
+`apps/web/.next`. Setting Root Directory to `apps/web` AND keeping
+`outputDirectory` as `apps/web/.next` produces a doubled path
+(`apps/web/apps/web/.next`) and a build failure; do not do both.
