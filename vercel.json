@@ -3,5 +3,8 @@
   "framework": "nextjs",
   "installCommand": "pnpm install --frozen-lockfile",
   "buildCommand": "pnpm --filter @greenfield/web build",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "crons": [
+    { "path": "/api/cron/supabase-keepalive", "schedule": "0 12 * * 0" }
+  ]
 }
