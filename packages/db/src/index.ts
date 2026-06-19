@@ -1,6 +1,6 @@
 // @greenfield/db
 //
-// Public surface. Cards 0.4 / 0.5 / 0.6.
+// Public surface. Cards 0.4 / 0.5 / 0.6 / 0.7.
 //
 // Card 0.6 adds the RLS tenancy primitives. App code that reads or
 // writes tenant-scoped tables MUST go through `withTenant(orgId, fn)`;
@@ -9,6 +9,11 @@
 // need to bypass RLS (Organisation lookup before tenancy is known —
 // card 0.7). `unscopedDb` is the raw-SQL equivalent for one-off admin
 // queries; same role / same RLS-bypass semantics.
+//
+// Card 0.7 adds the Organization entity, Membership join, RBAC
+// (assertRole), and the createOrganization function. The function is
+// the pure-logic core of the sign-up flow; the Next.js Route Handler
+// in apps/web wraps it with Supabase-auth-gated invocation.
 
 export { db, type Db } from './client.js';
 export {
@@ -17,4 +22,34 @@ export {
   type TenantDb,
 } from './rls.js';
 export { type Database } from './schema/index.js';
+export {
+  assertRole,
+  getMembership,
+  getFirstMembership,
+  RbacError,
+  type RbacErrorCode,
+  type MembershipRow,
+} from './rbac.js';
+export {
+  createOrganization,
+  CreateOrganizationError,
+  type CreateOrganizationInput,
+  type CreateOrganizationActor,
+  type CreateOrganizationResult,
+  type RegionCode as OrganizationRegionCode,
+} from './organizations.js';
+export {
+  UK_EU_REGIONS,
+  REGION_TO_COUNTRIES,
+  SUPPORTED_BASE_CURRENCIES,
+  SUPPORTED_DATA_RESIDENCIES,
+  DEFAULT_EUDR_SETTINGS,
+  type MembershipRole,
+  type CountryCode,
+  type RegionCode,
+  type BaseCurrency,
+  type DataResidency,
+  type EudrSettings,
+} from './schema/organizations.js';
+export { type User, type NewUser } from './schema/users.js';
 export const PACKAGE_NAME = '@greenfield/db' as const;
