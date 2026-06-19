@@ -96,6 +96,42 @@ statements / DDL don't trip the pooler's transaction-mode quirks.
 
 Smoke: push a commit, open a Preview deploy, view-source and confirm the page references `NEXT_PUBLIC_SUPABASE_URL` (browser-visible vars get inlined at build time, so a missing var fails the build).
 
+## Step 6 — Configure Auth URL Configuration (card 0.5)
+
+> **Why this step exists:** Supabase Auth uses a project-level **Site URL**
+> as the BASE for magic-link email redirects. If Site URL is left at the
+> default `http://localhost:3000`, every magic-link email the project
+> sends will link to `localhost:3000/auth/callback?code=…` — even if the
+> client passes a production `emailRedirectTo` to `signInWithOtp()`. The
+> code is fine; the email is the problem. This step fixes it.
+
+Dashboard → **Authentication** → **URL Configuration**:
+
+| Field            | Value                                                                  |
+| ---------------- | ---------------------------------------------------------------------- |
+| **Site URL**     | The deployed app's canonical origin (e.g. `https://greenfield.example.com`) |
+| **Redirect URLs**| One per line: production origin, `http://localhost:3000`, and any Vercel preview pattern (`https://greenfield-coffee-*-tristancoopers-projects.vercel.app`) |
+
+Verification — once the dashboard is saved, hit the running app's diag
+endpoint from the terminal:
+
+```bash
+curl -sS https://<your-domain>/api/auth/diag | jq
+# {
+#   "request":  { "origin": "https://<your-domain>", ... },
+#   "supabase": { "url": "https://<ref>.supabase.co", ... },
+#   "expected": { "redirect_urls_must_contain": ["<your-domain>", "http://localhost:3000"] },
+#   "dashboard": { "url_configuration": "https://supabase.com/dashboard/project/<ref>/auth/url-configuration" }
+# }
+```
+
+Cross-check the `expected.redirect_urls_must_contain` list against what
+you actually entered in the dashboard. They should match.
+
+**Symptom if you skip this step:** magic-link emails go out, user clicks
+them, and the browser lands on `http://localhost:3000/auth/callback`
+instead of the production app. (The original bug report for card 0.5.)
+
 ## Smoke test (operator-side)
 
 ```bash
@@ -135,7 +171,7 @@ psql "$DATABASE_URL" -c "select postgis_version();"
 
 When smoke passes, card 0.3 is done. Next:
 - **0.4** — Drizzle schema baseline, run first migration against `DATABASE_URL_DIRECT`
-- **0.5** — Supabase Auth wiring using `NEXT_PUBLIC_SUPABASE_ANON_KEY` + RLS policies
+- **0.5** — Supabase Auth wiring using `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (formerly `ANON_KEY`) + RLS policies. **Card 0.5 also requires Step 6 above** to set the Auth URL Configuration — the code is fine, but Supabase won't redirect magic-link emails to production until Site URL is set in the dashboard.
 
 ## Loading env into the shell
 
