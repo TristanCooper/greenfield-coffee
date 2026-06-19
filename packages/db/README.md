@@ -63,6 +63,48 @@ it. `drizzle.config.ts` reads `DATABASE_URL_DIRECT` — the operator loads
 it via `.env` (see `../../SUPABASE.md` for the loading step) or CI injects
 it directly.
 
+## pg_cron jobs
+
+Supabase ships the `pg_cron` extension (free-tier-eligible) which runs
+scheduled SQL inside Postgres. We use it for jobs that would otherwise
+burn a Vercel Cron slot (Hobby tier caps at 2 — card 0.8 uses one for
+keepalive). Operator enables pg_cron once in the Dashboard:
+**Database → Extensions → "pg_cron" → Enable**. After that, migrations
+under `src/migrations/0004_*` schedule jobs idempotently.
+
+| Jobname                       | Schedule (UTC) | Body                                              | Migration | Status                  |
+| ----------------------------- | -------------- | ------------------------------------------------- | --------- | ----------------------- |
+| `audit-pack-freshness-check`  | `0 4 * * *`    | `SELECT 1` (no-op; v1.5 replaces body)            | `0004`    | stub — audit logic in v1.5 |
+
+Inspect / run from psql:
+
+```sql
+-- List all jobs
+SELECT jobid, jobname, schedule, active FROM cron.job ORDER BY jobid;
+
+-- Run a job immediately (returns the same jobid; logged in cron.job_run_details)
+-- NOTE: Supabase's pinned pg_cron build does NOT ship cron.run_job().
+-- The available API is `cron.alter_job(jobid, schedule := '* * * * *')`
+-- to bump the schedule to "every minute", then revert. The job will
+-- fire on the next cron tick and land in cron.job_run_details.
+SELECT cron.alter_job(
+  (SELECT jobid FROM cron.job WHERE jobname = 'audit-pack-freshness-check'),
+  schedule := '* * * * *'
+);
+-- ...wait ~60s, then verify:
+-- SELECT cron.alter_job(
+--   (SELECT jobid FROM cron.job WHERE jobname = 'audit-pack-freshness-check'),
+--   schedule := '0 4 * * *'
+-- );
+
+-- Recent run history (last 5)
+SELECT start_time, end_time, status, return_message
+FROM cron.job_run_details
+WHERE jobid = (SELECT jobid FROM cron.job
+               WHERE jobname = 'audit-pack-freshness-check')
+ORDER BY start_time DESC LIMIT 5;
+```
+
 ## When to use the pooler vs direct
 
 | Operation                        | Use             |
