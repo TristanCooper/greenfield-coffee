@@ -22,6 +22,21 @@
 // Both env vars are operator-loaded; this module does NOT read .env at runtime
 // (Vercel injects process.env directly). drizzle.config.ts DOES read .env
 // because drizzle-kit runs from the operator shell.
+//
+// RLS / tenancy (card 0.6):
+//
+//   `db` is connected as the `postgres` role, which has BYPASSRLS. Reading or
+//   writing tenant-scoped tables through this handle will return / mutate ALL
+//   rows regardless of the requesting user — that's the wrong behaviour for
+//   app code. For tenant-scoped queries use `withTenant(orgId, async (tx) =>
+//   ...)` from ./rls.js, which opens a transaction, sets the `app.org_id`
+//   GUC, and switches to the `authenticated` role so RLS policies apply.
+//
+//   Reach for `db` directly only for:
+//     - migrations and `db:generate` (these have their own connection)
+//     - global lookups that legitimately pre-date tenancy (card 0.7's
+//       Organisation lookup)
+//     - tests against an unscoped fixture
 
 import { drizzle, type PostgresJsDatabase } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';

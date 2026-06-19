@@ -14,6 +14,10 @@ export default tseslint.config(
       '**/next-env.d.ts',
       // scratch probes — not part of the build, not linted
       '.scratch/**',
+      // root-level dotfile scratch probes written during operator
+      // debugging (eg /home/tristan/.../packages/db/.scratch-*.mjs);
+      // never tracked, never shipped.
+      '**/.scratch-*.mjs',
     ],
   },
   js.configs.recommended,
