@@ -42,9 +42,16 @@ pnpm dev      # http://localhost:3000
 ## Deploy (Vercel)
 
 Vercel project config lives in `vercel.json` at the repo root. With this
-file committed, the Vercel project should be imported with **Root
-Directory left at the repo root** (not `apps/web`) — Vercel then runs
-`pnpm --filter @greenfield/web build` and reads the output from
-`apps/web/.next`. Setting Root Directory to `apps/web` AND keeping
-`outputDirectory` as `apps/web/.next` produces a doubled path
-(`apps/web/apps/web/.next`) and a build failure; do not do both.
+file committed, the Vercel project must be imported with **Root Directory
+set to `apps/web`** (NOT the repo root) so Vercel's framework detector
+finds `next` in `apps/web/package.json`. `vercel.json` then:
+
+- `cd ../..` before `pnpm install` / `pnpm --filter @greenfield/web build`
+  — pnpm's hoisted store lives at the repo root, not under `apps/web`.
+- Sets `outputDirectory: ".next"` — relative to the Root Directory
+  (`apps/web`), so it resolves to `apps/web/.next` on disk.
+
+**Do not** import with Root Directory left at the repo root: Vercel's
+framework detector reads the root `package.json`, which has no `next`
+dependency, and the build fails with "No Next.js version detected" before
+any of `vercel.json` is honoured.
