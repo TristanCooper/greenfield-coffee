@@ -38,11 +38,18 @@ coverage
 # Next.js
 next-env.d.ts
 
-# Drizzle — generated artifacts. The .sql migration files themselves are tracked
-# (PRs diff schema changes via SQL diffs); meta/ and snapshot/ are build artifacts.
-# Drizzle-kit places these inside packages/db/src/migrations/ (alongside the .sql).
-packages/db/src/migrations/meta
-packages/db/src/migrations/*.json
+# Drizzle — both `.sql` migration files AND the `meta/` journal/snapshot
+# directories MUST be tracked. Drizzle-kit reads _journal.json to determine
+# which migrations have been applied and 0000_snapshot.json (etc.) to diff
+# the current schema against. Fresh-clone installs will fail with ENOENT
+# without these. The `.sql` is the source of truth for DDL; the journal +
+# snapshot are bookkeeping that must stay in sync.
+# packages/db/src/migrations/   (tracked)
+# packages/db/src/migrations/meta  (tracked)
 
 # pnpm
 .pnpm-debug.log*
+
+# Local scratch — ad-hoc probes, dump files; not part of the build, not
+# committed, not linted. Add via `.scratch/...` from the repo root.
+.scratch/

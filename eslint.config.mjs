@@ -12,6 +12,8 @@ export default tseslint.config(
       '**/.turbo/**',
       '**/*.tsbuildinfo',
       '**/next-env.d.ts',
+      // scratch probes — not part of the build, not linted
+      '.scratch/**',
     ],
   },
   js.configs.recommended,
