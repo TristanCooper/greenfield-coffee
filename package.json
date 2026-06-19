@@ -14,7 +14,11 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @greenfield/db generate",
+    "db:migrate": "pnpm --filter @greenfield/db migrate",
+    "db:studio": "pnpm --filter @greenfield/db studio",
+    "db:push": "pnpm --filter @greenfield/db push"
   },
   "devDependencies": {
     "@types/node": "^22.10.5",

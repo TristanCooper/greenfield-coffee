@@ -67,7 +67,23 @@ Dashboard → **Settings** → **Database** → **Connection string**:
 | Transaction   | 6543 | `DATABASE_URL`       | `?sslmode=require` |
 | Direct        | 5432 | `DATABASE_URL_DIRECT`| `?sslmode=require` |
 
-Pooler (6543) is what the running Next.js app uses. Direct (5432) is what Drizzle migrations and scripts use — it bypasses pgBouncer so prepared statements / DDL don't trip the pooler's transaction-mode quirks.
+Pooler (6543) is what the running Next.js app uses. Direct (5432) is what
+Drizzle migrations and scripts use — it bypasses pgBouncer so prepared
+statements / DDL don't trip the pooler's transaction-mode quirks.
+
+> **Reachability caveat (added card 0.4):** the Zenbook's `wlp195s0` interface
+> has an IPv4-only default route. `db.<project>.supabase.co` (DIRECT, port
+> 5432) is AAAA-only on Supabase's side, so DIRECT is **unreachable from
+> the Zenbook**. The pooler host is dual-stack and reachable on its IPv4
+> address. **Migration recipes:**
+>
+> - From Vercel / CI / any IPv6-capable host: use `DATABASE_URL_DIRECT`
+>   (plan §7.1 default — cleanest, no pgBouncer in the loop).
+> - From the Zenbook: pass `DATABASE_URL_DIRECT=$DATABASE_URL` to override
+>   for **empty / no-DDL migrations only**. Card 0.4 verified that
+>   drizzle-kit's `__drizzle_migrations` bootstrap (one `CREATE TABLE IF
+>   NOT EXISTS`) succeeds against the pooler. Once real DDL lands (cards
+>   0.9+), prefer Vercel/CI for migrations.
 
 ## Step 5 — Wire to Vercel
 
@@ -120,3 +136,21 @@ psql "$DATABASE_URL" -c "select postgis_version();"
 When smoke passes, card 0.3 is done. Next:
 - **0.4** — Drizzle schema baseline, run first migration against `DATABASE_URL_DIRECT`
 - **0.5** — Supabase Auth wiring using `NEXT_PUBLIC_SUPABASE_ANON_KEY` + RLS policies
+
+## Loading env into the shell
+
+`.env` is gitignored. Two ways to make `pnpm db:migrate` /
+`pnpm db:studio` see `DATABASE_URL_DIRECT`:
+
+```bash
+# 1. Inline (one-shot)
+set -a; . ./.env; set +a
+pnpm db:migrate
+
+# 2. direnv (recommended once you re-run these often)
+echo 'dotenv .env' > .envrc
+direnv allow   # auto-loads .env on every cd
+```
+
+Both work. drizzle-kit's `dotenv/config` import in `drizzle.config.ts`
+also loads `.env` automatically — `direnv` is optional, not required.

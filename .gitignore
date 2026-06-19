@@ -38,9 +38,11 @@ coverage
 # Next.js
 next-env.d.ts
 
-# Drizzle
-drizzle/.snapshots
-drizzle/meta
+# Drizzle — generated artifacts. The .sql migration files themselves are tracked
+# (PRs diff schema changes via SQL diffs); meta/ and snapshot/ are build artifacts.
+# Drizzle-kit places these inside packages/db/src/migrations/ (alongside the .sql).
+packages/db/src/migrations/meta
+packages/db/src/migrations/*.json
 
 # pnpm
 .pnpm-debug.log*
