@@ -69,6 +69,7 @@ import {
   boolean,
   check,
   index,
+  integer,
   numeric,
   pgEnum,
   pgTable,
@@ -196,6 +197,18 @@ export const priceListEntry = pgTable(
     // currency at INSERT time (application logic; no DB
     // default since the default depends on the parent row).
     currencyCode: text('currency_code').notNull(),
+    // VAT rate in BASIS POINTS (UK 20% = 2000, DE 19% = 1900,
+    // NL 21% = 2100, FR 20% = 2000, IE 23% = 2300). Card 0.13
+    // spec. The price_list.vat_rate_pct column captures the
+    // list-level default; this per-entry override is for SKUs
+    // that break the list's rate (e.g. food vs non-food in a
+    // wholesale context). NULL = inherit from
+    // price_list.vat_rate_pct (or use the org's standard rate
+    // at order time if neither is set).
+    //
+    // CHECK in [0, 10000) bps = 0%-99.99%. The 100% case
+    // (VAT = full price) is degenerate and a likely data bug.
+    vatRateBps: integer('vat_rate_bps'),
     // Optional min quantity for the entry to apply (volume
     // discount: 1+ at €X, 12+ at €Y). NULL = any quantity.
     minQuantity: numeric('min_quantity', { precision: 10, scale: 2 }),
@@ -229,6 +242,10 @@ export const priceListEntry = pgTable(
     minQuantityPositive: check(
       'price_list_entry_min_quantity_positive_check',
       sql`${table.minQuantity} IS NULL OR ${table.minQuantity} > 0`,
+    ),
+    vatRateBpsRange: check(
+      'price_list_entry_vat_rate_bps_range_check',
+      sql`${table.vatRateBps} IS NULL OR (${table.vatRateBps} >= 0 AND ${table.vatRateBps} < 10000)`,
     ),
   }),
 );
