@@ -11,9 +11,12 @@
 //   - audit.ts         (card 0.10)  — audit_event table (card 0.12 merged)
 //   - suppliers.ts     (card 0.11)  — Supplier table
 //   - producers.ts     (card 0.11)  — Producer + verification override
-//   - eudr.ts          (card 0.11)  — 5 EUDR tables (eudr_reference_data,
-//                                    lot_producer, dds_draft,
-//                                    shipment_eudr_decision, audit_pack)
+//   - eudr.ts          (card 0.11)  — 5 EUDR tables
+//   - operational.ts   (card 0.9)   — sku, packaging, recipe
+//   - price-lists.ts   (card 0.9)   — price_list, price_list_entry
+//   - money.ts         (card 0.9)   — fx_rate, landed_cost_event (minimal)
+//   - orders.ts        (card 0.9)   — order, order_line, order_edit
+//   - integrations.ts  (card 0.9)   — integration_connection (Phase 1 stub)
 
 export * from './auth.js';
 export * from './users.js';
@@ -24,6 +27,11 @@ export * from './audit.js';
 export * from './suppliers.js';
 export * from './producers.js';
 export * from './eudr.js';
+export * from './operational.js';
+export * from './price-lists.js';
+export * from './money.js';
+export * from './orders.js';
+export * from './integrations.js';
 
 import type { users } from './users.js';
 import type {
@@ -65,6 +73,32 @@ import type {
   ddsDraftStatus,
   auditPackStatus,
 } from './eudr.js';
+import type { sku, packaging, recipe } from './operational.js';
+import type {
+  priceList,
+  priceListEntry,
+  priceListVatMode,
+  priceListKind,
+} from './price-lists.js';
+import type {
+  fxRate,
+  landedCostEvent,
+  landedCostCostKind,
+  landedCostTargetKind,
+} from './money.js';
+import type {
+  order,
+  orderLine,
+  orderEdit,
+  orderStatus,
+  orderChannel,
+  orderEditKind,
+} from './orders.js';
+import type {
+  integrationConnection,
+  integrationProvider,
+  integrationStatus,
+} from './integrations.js';
 
 /**
  * Typed Supabase schema. Add new entity tables here as they're introduced so
@@ -180,6 +214,61 @@ export interface Database {
         Insert: typeof auditPack.$inferInsert;
         Update: Partial<typeof auditPack.$inferInsert>;
       };
+      sku: {
+        Row: typeof sku.$inferSelect;
+        Insert: typeof sku.$inferInsert;
+        Update: Partial<typeof sku.$inferInsert>;
+      };
+      packaging: {
+        Row: typeof packaging.$inferSelect;
+        Insert: typeof packaging.$inferInsert;
+        Update: Partial<typeof packaging.$inferInsert>;
+      };
+      recipe: {
+        Row: typeof recipe.$inferSelect;
+        Insert: typeof recipe.$inferInsert;
+        Update: Partial<typeof recipe.$inferInsert>;
+      };
+      price_list: {
+        Row: typeof priceList.$inferSelect;
+        Insert: typeof priceList.$inferInsert;
+        Update: Partial<typeof priceList.$inferInsert>;
+      };
+      price_list_entry: {
+        Row: typeof priceListEntry.$inferSelect;
+        Insert: typeof priceListEntry.$inferInsert;
+        Update: Partial<typeof priceListEntry.$inferInsert>;
+      };
+      fx_rate: {
+        Row: typeof fxRate.$inferSelect;
+        Insert: typeof fxRate.$inferInsert;
+        Update: Partial<typeof fxRate.$inferInsert>;
+      };
+      landed_cost_event: {
+        Row: typeof landedCostEvent.$inferSelect;
+        Insert: typeof landedCostEvent.$inferInsert;
+        Update: Partial<typeof landedCostEvent.$inferInsert>;
+      };
+      order: {
+        Row: typeof order.$inferSelect;
+        Insert: typeof order.$inferInsert;
+        Update: Partial<typeof order.$inferInsert>;
+      };
+      order_line: {
+        Row: typeof orderLine.$inferSelect;
+        Insert: typeof orderLine.$inferInsert;
+        Update: Partial<typeof orderLine.$inferInsert>;
+      };
+      order_edit: {
+        Row: typeof orderEdit.$inferSelect;
+        Insert: typeof orderEdit.$inferInsert;
+        Update: Partial<typeof orderEdit.$inferInsert>;
+      };
+      integration_connection: {
+        Row: typeof integrationConnection.$inferSelect;
+        Insert: typeof integrationConnection.$inferInsert;
+        Update: Partial<typeof integrationConnection.$inferInsert>;
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -196,6 +285,15 @@ export interface Database {
       shipment_eudr_reason_code: (typeof shipmentEudrReasonCode.enumValues)[number];
       dds_draft_status: (typeof ddsDraftStatus.enumValues)[number];
       audit_pack_status: (typeof auditPackStatus.enumValues)[number];
+      price_list_vat_mode: (typeof priceListVatMode.enumValues)[number];
+      price_list_kind: (typeof priceListKind.enumValues)[number];
+      landed_cost_cost_kind: (typeof landedCostCostKind.enumValues)[number];
+      landed_cost_target_kind: (typeof landedCostTargetKind.enumValues)[number];
+      order_status: (typeof orderStatus.enumValues)[number];
+      order_channel: (typeof orderChannel.enumValues)[number];
+      order_edit_kind: (typeof orderEditKind.enumValues)[number];
+      integration_provider: (typeof integrationProvider.enumValues)[number];
+      integration_status: (typeof integrationStatus.enumValues)[number];
     };
     CompositeTypes: Record<string, never>;
   };
