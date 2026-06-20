@@ -44,6 +44,12 @@ export {
   type RegionCode as OrganizationRegionCode,
 } from './organizations.js';
 export {
+  computeShipmentCompliance,
+  listHighRiskCountries,
+  type ComplianceStatus,
+  type ComplianceResult,
+} from './compliance.js';
+export {
   UK_EU_REGIONS,
   REGION_TO_COUNTRIES,
   SUPPORTED_BASE_CURRENCIES,

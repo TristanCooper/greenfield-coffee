@@ -12,6 +12,8 @@
 //   - suppliers.ts     (card 0.11)  — Supplier table
 //   - producers.ts     (card 0.11)  — Producer + verification override
 //   - eudr.ts          (card 0.11)  — 5 EUDR tables
+//   - eudr-high-risk-country.ts (card 0.20) — static EU high-risk
+//                                               country reference
 //   - operational.ts   (card 0.9)   — sku, packaging, recipe
 //   - price-lists.ts   (card 0.9)   — price_list, price_list_entry
 //   - money.ts         (card 0.13)  — fx_rate, landed_cost_event (full)
@@ -27,6 +29,7 @@ export * from './audit.js';
 export * from './suppliers.js';
 export * from './producers.js';
 export * from './eudr.js';
+export * from './eudr-high-risk-country.js';
 export * from './operational.js';
 export * from './price-lists.js';
 export * from './money.js';
@@ -73,6 +76,7 @@ import type {
   ddsDraftStatus,
   auditPackStatus,
 } from './eudr.js';
+import type { eudrHighRiskCountry } from './eudr-high-risk-country.js';
 import type { sku, packaging, recipe } from './operational.js';
 import type {
   priceList,
@@ -212,6 +216,11 @@ export interface Database {
         Row: typeof auditPack.$inferSelect;
         Insert: typeof auditPack.$inferInsert;
         Update: Partial<typeof auditPack.$inferInsert>;
+      };
+      eudr_high_risk_country: {
+        Row: typeof eudrHighRiskCountry.$inferSelect;
+        Insert: typeof eudrHighRiskCountry.$inferInsert;
+        Update: Partial<typeof eudrHighRiskCountry.$inferInsert>;
       };
       sku: {
         Row: typeof sku.$inferSelect;

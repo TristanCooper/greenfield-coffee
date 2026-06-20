@@ -45,6 +45,17 @@ export function Step2Producer({ state, dispatch }: StepProps): ReactElement {
   const [results, setResults] = useState<ProducerOption[]>([]);
   const [searching, setSearching] = useState(false);
   const [showMapPicker, setShowMapPicker] = useState(false);
+  // Card 0.20 — high-risk country list. The European Commission
+  // publishes a benchmarking list; countries on it require a DDS
+  // (Due Diligence Statement) for any EU shipment. The receiving
+  // form shows an amber warning at intake when the producer's
+  // country is on the list — receipt is allowed but the operator
+  // sees the risk. The list is fetched once per session; the
+  // warning re-evaluates on every country keystroke via a Set
+  // membership check (O(1) lookup).
+  const [highRiskCountries, setHighRiskCountries] = useState<Set<string>>(
+    new Set(),
+  );
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -77,6 +88,43 @@ export function Step2Producer({ state, dispatch }: StepProps): ReactElement {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [query, state.producer.id, state.producer.draftName]);
+
+  // Fetch the high-risk country list once on mount. The list is
+  // ~6 entries (BR, VN, CI, GH, CM, CD in the v1 baseline) and
+  // changes only on a European Commission update — the API
+  // route sets Cache-Control: max-age=3600 so subsequent fetches
+  // within a session hit the cache. We tolerate a fetch failure
+  // silently — the warning simply doesn't show. The ship form
+  // (card 0.19, not yet built) will read the list at ship time
+  // and re-issue the verdict regardless of what the receiving
+  // form shows.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        const res = await fetch('/api/compliance/high-risk-countries');
+        if (!res.ok) return;
+        const data = (await res.json()) as { countries: string[] };
+        if (!cancelled) {
+          setHighRiskCountries(new Set(data.countries));
+        }
+      } catch {
+        // network error — leave the set empty; the warning is
+        // a UI nicety, not a hard gate at intake time.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The warning text the receiving form should show. Only
+  // evaluated when a 2-letter country has been entered (avoids
+  // a flicker as the user types). The card body text is the
+  // canonical message — keep this in sync with the AC.
+  const showHighRiskWarning =
+    state.producer.draftCountryCode.length === 2 &&
+    highRiskCountries.has(state.producer.draftCountryCode.toUpperCase());
 
   return (
     <div>
@@ -226,6 +274,28 @@ export function Step2Producer({ state, dispatch }: StepProps): ReactElement {
                 />
               </label>
             </div>
+            {showHighRiskWarning && (
+              <div
+                role="alert"
+                style={{
+                  marginTop: '0.5rem',
+                  padding: '0.75rem 1rem',
+                  background: '#fef3c7',
+                  border: '1px solid #f59e0b',
+                  borderRadius: '0.375rem',
+                  color: '#78350f',
+                  fontSize: '0.875rem',
+                  lineHeight: 1.4,
+                }}
+              >
+                <strong style={{ display: 'block', marginBottom: '0.25rem' }}>
+                  EU high-risk country
+                </strong>
+                This country is on the EU high-risk list. Receipt is
+                allowed but EU shipments from this lot will require a
+                DDS. Continue?
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <label style={{ ...labelStyle, flex: 1 }}>
                 Area (hectares)
