@@ -6,6 +6,7 @@
   "engines": {
     "node": ">=20"
   },
+  "//scripts": "ROOT SCRIPTS are the developer interface. Run these from the repo root (e.g. `pnpm dev`, `pnpm test`). Each root script delegates to a workspace member via `pnpm --filter <pkg>` or `pnpm -r`. Workspace members (apps/web, packages/db, packages/money) ALSO have a `package.json` with their own scripts — those are an implementation detail. Add a script here (root) only when you want it invokable as `pnpm <script>`; member scripts that the root delegates to stay in the member's `package.json`.",
   "scripts": {
     "dev": "pnpm --filter @greenfield/web dev",
     "build": "pnpm -r build",
@@ -13,6 +14,8 @@
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "pnpm --filter @greenfield/web test:e2e",
+    "test:e2e:ui": "pnpm --filter @greenfield/web test:e2e:ui",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "db:generate": "pnpm --filter @greenfield/db generate",
