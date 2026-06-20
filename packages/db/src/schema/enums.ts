@@ -68,8 +68,6 @@ export {
 export {
   landedCostCostKind,
   type LandedCostCostKind,
-  landedCostTargetKind,
-  type LandedCostTargetKind,
 } from './money.js';
 
 export {

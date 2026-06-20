@@ -14,7 +14,7 @@
 //   - eudr.ts          (card 0.11)  — 5 EUDR tables
 //   - operational.ts   (card 0.9)   — sku, packaging, recipe
 //   - price-lists.ts   (card 0.9)   — price_list, price_list_entry
-//   - money.ts         (card 0.9)   — fx_rate, landed_cost_event (minimal)
+//   - money.ts         (card 0.13)  — fx_rate, landed_cost_event (full)
 //   - orders.ts        (card 0.9)   — order, order_line, order_edit
 //   - integrations.ts  (card 0.9)   — integration_connection (Phase 1 stub)
 
@@ -84,7 +84,6 @@ import type {
   fxRate,
   landedCostEvent,
   landedCostCostKind,
-  landedCostTargetKind,
 } from './money.js';
 import type {
   order,
@@ -288,7 +287,6 @@ export interface Database {
       price_list_vat_mode: (typeof priceListVatMode.enumValues)[number];
       price_list_kind: (typeof priceListKind.enumValues)[number];
       landed_cost_cost_kind: (typeof landedCostCostKind.enumValues)[number];
-      landed_cost_target_kind: (typeof landedCostTargetKind.enumValues)[number];
       order_status: (typeof orderStatus.enumValues)[number];
       order_channel: (typeof orderChannel.enumValues)[number];
       order_edit_kind: (typeof orderEditKind.enumValues)[number];
