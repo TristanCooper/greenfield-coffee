@@ -18,9 +18,13 @@
 # Secrets required (set in repo Settings → Secrets):
 #   - NEXT_PUBLIC_SUPABASE_URL
 #   - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-#   - SUPABASE_SERVICE_ROLE_KEY
 #   - DATABASE_URL
 #   - PLAYWRIGHT_TEST_USER_PASSWORD  (optional, uses a default)
+#
+# No SUPABASE_SERVICE_ROLE_KEY — the test harness creates
+# the test user via direct SQL (BYPASSRLS) and signs in via
+# the publishable key (signInWithPassword through the
+# /api/test/sign-in route).
 
 name: e2e
 
@@ -36,7 +40,6 @@ jobs:
     env:
       NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
       PLAYWRIGHT_TEST_USER_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_USER_PASSWORD }}
       CI: '1'

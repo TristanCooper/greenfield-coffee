@@ -6,9 +6,10 @@ invoked from `apps/web/` via `pnpm test:e2e`.
 
 ## What's covered
 
-- `auth.spec.ts` — magic-link sign-in (via the Supabase admin
-  API helper) + session cookie presence + redirect-to-login
-  for unauthenticated users.
+- `auth.spec.ts` — sign-in via the test-only `/api/test/sign-in`
+  route (publishable key + signInWithPassword) + session
+  cookie presence + redirect-to-login for unauthenticated
+  users.
 - `onboarding.spec.ts` — the post-sign-in org dashboard.
 - `receiving-green.spec.ts` — the full 5-step green-receiving
   wizard, end-to-end. Asserts the green_lot, supplier,
@@ -17,15 +18,21 @@ invoked from `apps/web/` via `pnpm test:e2e`.
 
 ## Required env vars
 
-Copy from `.env.example` and fill in. All four are required —
+Copy from `.env.example` and fill in. All three are required —
 the global setup fails loud if any are missing.
 
-| Env var                            | Used for                                    |
-| ---------------------------------- | ------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`         | The project URL (public to the browser).    |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | The publishable (anon) key.             |
-| `SUPABASE_SERVICE_ROLE_KEY`        | Admin API: create the test user, generate the magic link. SERVER-ONLY — never import into a client module. |
-| `DATABASE_URL`                     | `unscopedDb` for the global setup's reset + the spec files' post-submit assertions. |
+| Env var                                | Used for                                    |
+| -------------------------------------- | ------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`             | The project URL (public to the browser).    |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | The publishable (anon) key.                  |
+| `DATABASE_URL`                         | `unscopedDb` for the global setup's user/org creation, the spec files' DB reset, and the post-submit assertions. |
+
+**No service-role key is required.** The test harness does
+test-user creation via direct SQL (INSERT INTO auth.users
+with bcrypt-hashed password) and test auth via the
+publishable key (signInWithPassword). This is the modern
+Supabase pattern: no long-lived admin bearer tokens in
+the test config.
 
 Optional:
 
@@ -49,7 +56,6 @@ Optional:
    ```bash
    NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
    NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_<…>
-   SUPABASE_SERVICE_ROLE_KEY=eyJ…  # service_role JWT from Supabase dashboard
    DATABASE_URL=postgres://…?sslmode=require
    ```
 
@@ -64,8 +70,9 @@ Optional:
 The tests run against your **live Supabase project** — the
 same one your dev server uses. The test setup:
 
-- Creates a test user (`playwright-test@greenfield.example`).
-  Idempotent — re-runs reuse the same user.
+- Creates a test user (`playwright-test@greenfield.example`)
+  via direct SQL (INSERT INTO auth.users with bcrypt-hashed
+  password). Idempotent — re-runs reuse the same user.
 - Creates a test org named "Greenfield Test" with region GB
   and base currency GBP. Idempotent.
 - Adds the test user to the org as `owner`.
@@ -84,15 +91,19 @@ the env vars at it. The test code is environment-agnostic.
 
 ## How the auth helper works
 
-The magic-link email round-trip is skipped. The
-`utils/auth.ts` helper calls Supabase's admin API
-(`supabase.auth.admin.generateLink({ type: 'magiclink',
-email, options: { redirectTo: <baseURL>/auth/callback } })`)
-to get a server-generated `action_link`, extracts the `code`
-from it, and visits `/auth/callback?code=…` in the browser
-to set the session cookie. The result is the same as a real
-magic-link click — the cookie is real, the session is real,
-and the protected routes are reachable.
+The test browser navigates to `/api/test/sign-in?email=…
+&password=…`. That route lives at
+`apps/web/src/app/api/test/sign-in/route.ts` and:
+
+1. Refuses to run in production (returns 404 if
+   `NODE_ENV === 'production'`).
+2. Calls `supabase.auth.signInWithPassword` using the
+   publishable key (no admin key required).
+3. Sets the session cookies via @supabase/ssr's setAll —
+   the same path the production `/auth/callback` route uses.
+
+The test browser ends up with a real session cookie. No
+magic-link email round-trip, no service-role key.
 
 ## Adding a new test
 

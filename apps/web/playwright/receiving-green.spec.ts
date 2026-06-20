@@ -201,7 +201,7 @@ test.describe('Receiving green — full wizard happy path', () => {
 
     // The supplier we created exists.
     const suppliers = await unscopedDb(
-      `SELECT name, country_code FROM public.supplier WHERE org_id = $1`,
+      `SELECT name, country_of_origin FROM public.supplier WHERE org_id = $1`,
       orgId,
     );
     expect(suppliers).toHaveLength(1);
@@ -256,7 +256,7 @@ test.describe('Receiving green — full wizard happy path', () => {
 async function createTestProducer(orgId: string): Promise<string> {
   const inserted = await unscopedDb(
     `INSERT INTO public.producer
-       (org_id, name, country_code, region, area_hectares,
+       (org_id, name, country_of_origin, region, area_hectares,
         verification_source, geolocation)
      VALUES (
        $1, 'Test Producer', 'CO', 'Huila', 5.0,

@@ -5,8 +5,8 @@
 // WHAT THIS DOES
 //
 //   1. Verifies the required env vars (URL, publishable key,
-//      service role key, DATABASE_URL). Fails loud with a
-//      clear message if any are missing.
+//      DATABASE_URL). Fails loud with a clear message if
+//      any are missing.
 //   2. Ensures the test org + test user + membership exist.
 //      The test org is named "Greenfield Test" and the user
 //      is "playwright-test@greenfield.example". Both are
@@ -25,32 +25,32 @@
 //   Playwright runs global-setup once per `playwright test`
 //   invocation (NOT per test file). It runs in a separate
 //   Node process; the test files run AFTER it completes.
-//   `globalTeardown` is the symmetric cleanup hook; not
-//   used in v1 (we don't drop the test org after the run).
+//
+// WHY NO SERVICE-ROLE KEY
+//
+//   Earlier versions of this file used the Supabase admin
+//   API (createUser, generateLink) which required the
+//   service-role key. That key is a long-lived bearer
+//   token with full DB access — a "legacy" way of doing
+//   test user setup. The modern pattern is to do it via
+//   direct SQL on the BYPASSRLS postgres role, which only
+//   needs DATABASE_URL.
+//
+//   Concretely:
+//     - Test user creation: INSERT INTO auth.users with
+//       crypt($password, gen_salt('bf')) for the password
+//       hash. The card 0.5 trigger creates the public.users
+//       mirror row automatically.
+//     - Test auth (in utils/auth.ts): signInWithPassword
+//       against the publishable key (no admin key needed).
 //
 // TEST FIXTURES
 //
-//   The test user / org IDs are exported so the spec files
-//   and the auth helper can read them. They're written to
-//   `playwright/.test-fixtures.json` so subsequent test
-//   processes (e.g. parallel test workers) can read them.
-//   (Currently workers: 1, so this is overkill — but the
-//   pattern is in place for when workers > 1.)
-//
-// WHY A REAL SUPABASE PROJECT
-//
-//   The card body says "a real Supabase emulator (or a real
-//   staging project via secrets)". Emulating Supabase auth
-//   (the magic-link flow) is non-trivial and the project
-//   doesn't have a staging env yet, so v1 hits the live
-//   `greenfield-prod` project's auth API and uses a
-//   dedicated test org within it. The test org is named
-//   "Greenfield Test" and is filtered out of any "list my
-//   orgs" UI. v1.5 should split the test data into a
-//   dedicated Supabase project.
+//   The test user / org IDs are written to
+//   `playwright/.tmp/fixtures.json` so the spec files can
+//   read them. Currently workers: 1, so the file is the
+//   simplest coordination mechanism.
 
-import { sql } from 'drizzle-orm';
-import { createClient as createSbClient } from '@supabase/supabase-js';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import 'dotenv/config';
@@ -61,7 +61,6 @@ import { unscopedDb } from '@greenfield/db';
 const REQUIRED_ENV = [
   'NEXT_PUBLIC_SUPABASE_URL',
   'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
-  'SUPABASE_SERVICE_ROLE_KEY',
   'DATABASE_URL',
 ] as const;
 
@@ -76,64 +75,91 @@ function requireEnv(name: (typeof REQUIRED_ENV)[number]): string {
   return value;
 }
 
-const SUPABASE_URL = requireEnv('NEXT_PUBLIC_SUPABASE_URL');
-const SUPABASE_SERVICE_ROLE_KEY = requireEnv('SUPABASE_SERVICE_ROLE_KEY');
-
 // ── Test fixtures (hard-coded) ─────────────────────────────────────────
 
 const TEST_USER_EMAIL = 'playwright-test@greenfield.example';
 const TEST_USER_PASSWORD =
   process.env.PLAYWRIGHT_TEST_USER_PASSWORD ?? 'test-password-do-not-use-in-prod';
+const TEST_USER_ID = '11111111-1111-1111-1111-111111111111';
 const TEST_ORG_NAME = 'Greenfield Test';
+const TEST_ORG_ID = '22222222-2222-2222-2222-222222222222';
+// The Supabase auth schema's `instance_id` column is a UUID
+// that groups users in a Supabase project. For hosted
+// Supabase projects this is the project's own UUID; the
+// all-zeros value is the convention for self-hosted
+// instances. Using all-zeros here works against any
+// Supabase instance (hosted or self-hosted) because the
+// column isn't foreign-keyed.
+const SUPABASE_AUTH_INSTANCE_ID = '00000000-0000-0000-0000-000000000000';
 
 interface TestFixtures {
   userId: string;
   orgId: string;
+  userEmail: string;
+  userPassword: string;
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────
 
-function adminSb() {
-  return createSbClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-    auth: { autoRefreshToken: false, persistSession: false },
-  });
-}
-
+/**
+ * Ensure the test user exists with a known password. The
+ * `INSERT ... ON CONFLICT (email) DO NOTHING` is idempotent —
+ * re-runs don't error if the user already exists. The
+ * `encrypted_password` uses `crypt($password, gen_salt('bf'))`
+ * which is Supabase's bcrypt-hashed password format; the
+ * auth.users row this produces is identical to one created
+ * via the production signup flow.
+ *
+ * The card 0.5 trigger on auth.users (0001_auth_bridge.sql)
+ * creates the public.users mirror row automatically — we
+ * don't insert it here.
+ *
+ * The user has a fixed UUID (TEST_USER_ID) so the spec files
+ * and the fixtures.json can read a stable identifier.
+ */
 async function ensureTestUser(): Promise<string> {
-  const sb = adminSb();
-  // createUser is idempotent: it errors with `email_exists`
-  // (or "already registered") if the user already exists;
-  // we catch and continue.
-  const { data, error } = await sb.auth.admin.createUser({
-    email: TEST_USER_EMAIL,
-    password: TEST_USER_PASSWORD,
-    email_confirm: true,
-    user_metadata: { test: true },
-  });
-  if (data?.user) {
-    return data.user.id;
-  }
-  if (!error) {
-    throw new Error('createUser returned no user and no error');
-  }
-  // Fall through to the lookup branch below.
-  void error;
-  const { data: listData, error: listError } =
-    await sb.auth.admin.listUsers({ page: 1, perPage: 200 });
-  if (listError) {
-    throw new Error(`Failed to look up test user: ${listError.message}`);
-  }
-  const user = listData?.users?.find((u) => u.email === TEST_USER_EMAIL);
-  if (!user) {
-    throw new Error(
-      `Test user ${TEST_USER_EMAIL} not found after create error`,
-    );
-  }
-  return user.id;
+  await unscopedDb(
+    `INSERT INTO auth.users
+       (instance_id, id, aud, role, email,
+        encrypted_password, email_confirmed_at,
+        raw_user_meta_data, raw_app_meta_data,
+        created_at, updated_at, confirmation_token,
+        recovery_token, email_change_token_new,
+        email_change, is_super_admin)
+     VALUES (
+       $1, $2, 'authenticated', 'authenticated', $3,
+       crypt($4, gen_salt('bf')), now(),
+       '{"test": true}'::jsonb, '{"provider":"email"}'::jsonb,
+       now(), now(), '', '', '', '', false
+     )
+     ON CONFLICT (id) DO NOTHING`,
+    SUPABASE_AUTH_INSTANCE_ID,
+    TEST_USER_ID,
+    TEST_USER_EMAIL,
+    TEST_USER_PASSWORD,
+  );
+
+  // Confirm email idempotently (the ON CONFLICT above
+  // doesn't update existing rows; if the user existed
+  // before this run with an unconfirmed email, this
+  // updates it so signInWithPassword works).
+  await unscopedDb(
+    `UPDATE auth.users
+        SET email_confirmed_at = now(),
+            encrypted_password = crypt($2, gen_salt('bf')),
+            updated_at = now()
+      WHERE id = $1
+        AND (email_confirmed_at IS NULL
+             OR encrypted_password IS DISTINCT FROM crypt($2, gen_salt('bf')))`,
+    TEST_USER_ID,
+    TEST_USER_PASSWORD,
+  );
+
+  return TEST_USER_ID;
 }
 
-async function ensureTestOrg(userId: string): Promise<string> {
-  // Look up by name first.
+async function ensureTestOrg(): Promise<string> {
+  // Look up by name first (idempotent).
   const existing = await unscopedDb(
     `SELECT id FROM public.organizations WHERE name = $1 LIMIT 1`,
     TEST_ORG_NAME,
@@ -143,29 +169,19 @@ async function ensureTestOrg(userId: string): Promise<string> {
   }
 
   // Insert the org.
-  const inserted = await unscopedDb(
+  await unscopedDb(
     `INSERT INTO public.organizations
-       (name, country_code, region, base_currency, data_residency)
-     VALUES ($1, 'GB', 'GB', 'GBP', 'uk')
-     RETURNING id`,
+       (id, name, country_code, region, base_currency, data_residency)
+     VALUES ($1, $2, 'GB', 'GB', 'GBP', 'uk')
+     ON CONFLICT (id) DO NOTHING`,
+    TEST_ORG_ID,
     TEST_ORG_NAME,
   );
-  const orgId = (inserted[0] as { id: string } | undefined)?.id;
-  if (!orgId) {
-    throw new Error('Failed to insert test org');
-  }
 
-  // Mirror the user into public.users (the auth-bridge
-  // trigger does this in production, but we're using the
-  // admin API which doesn't fire that trigger).
-  await unscopedDb(
-    `INSERT INTO public.users (id, email) VALUES ($1, $2)
-     ON CONFLICT (id) DO NOTHING`,
-    userId,
-    TEST_USER_EMAIL,
-  );
+  return TEST_ORG_ID;
+}
 
-  // Insert the membership (org owner).
+async function ensureMembership(userId: string, orgId: string): Promise<void> {
   await unscopedDb(
     `INSERT INTO public.memberships (org_id, user_id, role)
      VALUES ($1, $2, 'owner'::membership_role)
@@ -173,8 +189,6 @@ async function ensureTestOrg(userId: string): Promise<string> {
     orgId,
     userId,
   );
-
-  return orgId;
 }
 
 async function resetTransactionalData(orgId: string): Promise<void> {
@@ -183,8 +197,7 @@ async function resetTransactionalData(orgId: string): Promise<void> {
   //
   // The table list is whitelisted — we never DELETE from an
   // unscoped (global) table. The 'fx_rate' row is global so
-  // we DON'T delete it; the test org has no fx_rate writes
-  // and the rate is treated as a static reference.
+  // we DON'T delete it.
   const tablesWithOrg: string[] = [
     'public.audit_event',
     'public.landed_cost_event',
@@ -214,9 +227,7 @@ async function resetTransactionalData(orgId: string): Promise<void> {
         orgId,
       );
     } catch (e) {
-      // A table that doesn't exist yet (e.g. card 0.16 not
-      // yet shipped) is silently ignored. The reset is
-      // best-effort per table.
+      // A table that doesn't exist yet is silently ignored.
       console.warn(
         `[global-setup] Skipped reset of ${table}:`,
         e instanceof Error ? e.message : String(e),
@@ -238,6 +249,7 @@ async function resetTransactionalData(orgId: string): Promise<void> {
 export const TEST_USER = {
   email: TEST_USER_EMAIL,
   password: TEST_USER_PASSWORD,
+  id: TEST_USER_ID,
 };
 
 // ── Entry point ────────────────────────────────────────────────────────
@@ -250,13 +262,19 @@ export default async function globalSetup(): Promise<void> {
   const userId = await ensureTestUser();
 
   console.log('[global-setup] Ensuring test org + membership…');
-  const orgId = await ensureTestOrg(userId);
+  const orgId = await ensureTestOrg();
+  await ensureMembership(userId, orgId);
 
   console.log('[global-setup] Resetting transactional data…');
   await resetTransactionalData(orgId);
 
   // Persist the IDs so spec files can read them.
-  const fixtures: TestFixtures = { userId, orgId };
+  const fixtures: TestFixtures = {
+    userId,
+    orgId,
+    userEmail: TEST_USER_EMAIL,
+    userPassword: TEST_USER_PASSWORD,
+  };
   const outDir = join(__dirname, '.tmp');
   mkdirSync(outDir, { recursive: true });
   writeFileSync(

@@ -58,3 +58,8 @@ kanban/
 .agents/
 .claude/
 .cursor/
+
+# Playwright E2E test output (videos, traces, screenshots, reports).
+# Regenerated on every test run; not part of the source.
+apps/web/test-results/
+apps/web/playwright-report/

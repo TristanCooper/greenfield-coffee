@@ -2,134 +2,74 @@
 //
 // Card 13 / magic-link auth helper for Playwright tests.
 //
-// WHY A CUSTOM HELPER
-//
-//   The card body for 0.5 sends a magic link via Supabase
-//   auth's email flow. A test that waits for the email
-//   (via Mailosaur / Mailtrap / Resend test mode) is the
-//   real way to exercise the flow end-to-end, but the
-//   infra isn't wired yet. The v1 helper skips the email
-//   round-trip: it asks Supabase's admin API to generate a
-//   magic link server-side, extracts the verification
-//   `code` from the resulting `action_link`, and visits
-//   `/auth/callback?code=…` to set the session cookie.
-//
 // HOW IT WORKS
 //
-//   1. `supabase.auth.admin.generateLink({ type: 'magiclink',
-//      email, options: { redirectTo: <baseURL>/auth/callback }})`
-//      returns `{ data: { properties: { action_link: string } } }`.
-//   2. Parse the `code` query param from the `action_link`.
-//   3. `page.goto('<baseURL>/auth/callback?code=…')` — the
-//      route handler exchanges the code and sets the
-//      cookies.
-//   4. The page is now authenticated.
+//   The test process navigates the browser to
+//   `/api/test/sign-in?email=...&password=...`. The dev server
+//   runs the route handler, which uses the publishable key
+//   to call `signInWithPassword` against Supabase Auth. On
+//   success, the route handler sets the session cookies
+//   via @supabase/ssr's setAll — the same path that the
+//   production `/auth/callback` route uses after a magic
+//   link exchange. The browser ends up with a real session
+//   cookie. The test then asserts the cookie is set and
+//   navigates to a protected route.
 //
-//   The session cookie is httpOnly + signed by Supabase;
-//   Playwright's `context.cookies()` exposes it. The
-//   follow-up navigations (`page.goto('/onboarding')`, etc.)
-//   use the cookie automatically.
+// WHY THIS AVOIDS THE SERVICE-ROLE KEY
 //
-// CAVEAT
+//   Earlier versions used `supabase.auth.admin.generateLink`
+//   which requires the service-role key. That key is a
+//   long-lived bearer token with full DB access — a
+//   "legacy" way of doing test auth. The modern pattern
+//   is to use the publishable key for user-level auth
+//   (signInWithPassword) and direct SQL for user creation
+//   (handled in global-setup.ts). No admin key required.
 //
-//   The admin `generateLink` is the same API the card
-//   0.17 testing approach would use. It exercises the
-//   Supabase auth flow end-to-end (the token is generated
-//   server-side, the action_link goes through the
-//   Supabase-hosted verify endpoint, and the redirect to
-//   `/auth/callback` is real). The only thing it skips is
-//   the user's email client — the link never lands in
-//   an inbox.
+//   The test-only `/api/test/sign-in` route is gated on
+//   `NODE_ENV !== 'production'` so it 404s in prod.
+//
+// RETURN TYPE
+//
+//   The helper returns void. After the call, the test
+//   process's browser has the session cookies. Follow-up
+//   navigations are authenticated.
 
-import { createClient } from '@supabase/supabase-js';
-import type { Page, BrowserContext } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import 'dotenv/config';
 
-// Env vars are read lazily inside the helpers, not at
-// module import time. The spec files import this module at
-// collection time (e.g. for `playwright --list`), and we
-// don't want the missing-env error to fire before the
-// global setup has validated everything.
-
-function mustEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) {
-    throw new Error(
-      `Missing env var ${name}; required by the playwright auth helper.`,
-    );
-  }
-  return v;
-}
+const TEST_USER_EMAIL =
+  process.env.PLAYWRIGHT_TEST_USER_EMAIL ??
+  'playwright-test@greenfield.example';
+const TEST_USER_PASSWORD =
+  process.env.PLAYWRIGHT_TEST_USER_PASSWORD ??
+  'test-password-do-not-use-in-prod';
 
 /**
- * Sign a page in as the test user via the magic-link flow.
- * Mutates the page's context: cookies are set so subsequent
- * navigations are authenticated.
+ * Sign the browser in as the test user. After this call,
+ * the test's browser has a valid Supabase session cookie
+ * and follow-up navigations to protected routes succeed.
  */
 export async function signInAsTestUser(
   page: Page,
   baseURL: string,
 ): Promise<void> {
-  const sb = createClient(
-    mustEnv('NEXT_PUBLIC_SUPABASE_URL'),
-    mustEnv('SUPABASE_SERVICE_ROLE_KEY'),
-    { auth: { autoRefreshToken: false, persistSession: false } },
-  );
+  // POST would be more RESTful; the route uses GET for
+  // simplicity (no body parsing) and because the credentials
+  // are URL-encoded query params (in dev only). The dev
+  // server doesn't log query params, but we still avoid
+  // logging anything from this path.
+  const url = new URL('/api/test/sign-in', baseURL);
+  url.searchParams.set('email', TEST_USER_EMAIL);
+  url.searchParams.set('password', TEST_USER_PASSWORD);
 
-  const { data, error } = await sb.auth.admin.generateLink({
-    type: 'magiclink',
-    email: process.env.PLAYWRIGHT_TEST_USER_EMAIL ??
-      'playwright-test@greenfield.example',
-    options: {
-      redirectTo: `${baseURL}/auth/callback`,
-    },
-  });
-  if (error) {
-    throw new Error(`generateLink failed: ${error.message}`);
+  const response = await page.goto(url.toString(), { waitUntil: 'load' });
+  if (!response) {
+    throw new Error('signInAsTestUser: no response from /api/test/sign-in');
   }
-  const actionLink = data?.properties?.action_link;
-  if (!actionLink) {
-    throw new Error('generateLink returned no action_link');
+  if (response.status() !== 200) {
+    const body = await response.text().catch(() => '<unreadable>');
+    throw new Error(
+      `signInAsTestUser: /api/test/sign-in returned ${response.status()}: ${body}`,
+    );
   }
-
-  // Parse the `code` query param from the action_link. The
-  // link looks like:
-  //   https://<project>.supabase.co/auth/v1/verify?token=...&type=magiclink&redirect_to=...&code=<code>
-  // The PKCE flow surfaces the `code` directly; the legacy
-  // OTP flow uses `token` (and the Supabase auth domain
-  // exchanges it for a `code` server-side before redirecting).
-  // We handle both.
-  const url = new URL(actionLink);
-  let code = url.searchParams.get('code');
-  if (!code) {
-    const token = url.searchParams.get('token');
-    if (!token) {
-      throw new Error(
-        `action_link has no code or token: ${actionLink.slice(0, 200)}…`,
-      );
-    }
-    // The Supabase auth domain's /verify endpoint will
-    // exchange the token for a code. Visit the FULL
-    // action_link in the browser so the Supabase auth
-    // domain runs its verify logic, then we land on
-    // /auth/callback?code=… with the session cookie.
-    await page.goto(actionLink, { waitUntil: 'load' });
-    return;
-  }
-
-  // Direct code path: visit the callback with the code.
-  await page.goto(
-    `${baseURL}/auth/callback?code=${encodeURIComponent(code)}`,
-    { waitUntil: 'load' },
-  );
-}
-
-/**
- * Sign out by clearing cookies. Use between tests if a
- * fixture needs a clean unauthenticated state. (The
- * receiving-green test doesn't need this — it stays
- * signed in throughout.)
- */
-export async function signOut(context: BrowserContext): Promise<void> {
-  await context.clearCookies();
 }
