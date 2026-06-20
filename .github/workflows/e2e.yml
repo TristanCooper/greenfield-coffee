@@ -1,0 +1,72 @@
+# .github/workflows/e2e.yml
+#
+# Card 13 / Playwright E2E CI workflow stub.
+#
+# This workflow is wired but does NOT run in this state —
+# the secrets it requires (SUPABASE_SERVICE_ROLE_KEY,
+# DATABASE_URL pointing at a test DB, etc.) are placeholders.
+# A v1 follow-up populates the secrets and flips the
+# `if:` guard to enable runs on PR.
+#
+# When enabled, this workflow:
+#   1. Spins up a Node 22 environment.
+#   2. Installs pnpm + dependencies.
+#   3. Installs Playwright's chromium browser.
+#   4. Runs the E2E tests against a Supabase staging project
+#      (env vars come from GitHub secrets).
+#
+# Secrets required (set in repo Settings → Secrets):
+#   - NEXT_PUBLIC_SUPABASE_URL
+#   - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+#   - SUPABASE_SERVICE_ROLE_KEY
+#   - DATABASE_URL
+#   - PLAYWRIGHT_TEST_USER_PASSWORD  (optional, uses a default)
+
+name: e2e
+
+on:
+  # v1: disabled by default. Set the secrets + flip this
+  # to `pull_request:` to enable runs on every PR.
+  workflow_dispatch:
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      PLAYWRIGHT_TEST_USER_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_USER_PASSWORD }}
+      CI: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --filter @greenfield/web exec playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: pnpm --filter @greenfield/web test:e2e
+
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report
+          retention-days: 7
