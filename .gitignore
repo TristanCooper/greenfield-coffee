@@ -54,3 +54,7 @@ next-env.d.ts
 # committed, not linted. Add via `.scratch/...` from the repo root.
 .scratch/
 .gh-logs/
+kanban/
+.agents/
+.claude/
+.cursor/

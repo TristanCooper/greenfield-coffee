@@ -1,6 +1,6 @@
 // @greenfield/db
 //
-// Public surface. Cards 0.4 / 0.5 / 0.6 / 0.7.
+// Public surface. Cards 0.4 / 0.5 / 0.6 / 0.7 / 0.10.
 //
 // Card 0.6 adds the RLS tenancy primitives. App code that reads or
 // writes tenant-scoped tables MUST go through `withTenant(orgId, fn)`;
@@ -14,6 +14,11 @@
 // (assertRole), and the createOrganization function. The function is
 // the pure-logic core of the sign-up flow; the Next.js Route Handler
 // in apps/web wraps it with Supabase-auth-gated invocation.
+//
+// Card 0.10 adds the lot spine (green_lot, roast_batch, roasted_lot,
+// packaged_lot, stock_movement, lot_allocation, return_event) plus
+// audit_event (merged from card 0.12). The schema/types re-exports
+// grow accordingly; no runtime functions added in this card.
 
 export { db, type Db } from './client.js';
 export {
@@ -51,5 +56,34 @@ export {
   type DataResidency,
   type EudrSettings,
 } from './schema/organizations.js';
+export {
+  type GreenLotStatus,
+  type RoastBatchStatus,
+  type RoastedLotStatus,
+  type PackagedLotStatus,
+  type StockMovementKind,
+} from './schema/enums.js';
+export {
+  type GreenLot,
+  type NewGreenLot,
+  type RoastBatch,
+  type NewRoastBatch,
+  type RoastBatchComponent,
+  type NewRoastBatchComponent,
+  type RoastedLot,
+  type NewRoastedLot,
+  type PackagedLot,
+  type NewPackagedLot,
+  type StockMovement,
+  type NewStockMovement,
+  type LotAllocation,
+  type NewLotAllocation,
+  type ReturnEvent,
+  type NewReturnEvent,
+} from './schema/lots.js';
+export {
+  type AuditEvent,
+  type NewAuditEvent,
+} from './schema/audit.js';
 export { type User, type NewUser } from './schema/users.js';
 export const PACKAGE_NAME = '@greenfield/db' as const;

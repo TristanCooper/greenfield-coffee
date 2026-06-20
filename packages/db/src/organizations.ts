@@ -335,7 +335,7 @@ export async function createOrganization(
       });
       await tx.execute(
         sql`INSERT INTO public.audit_event
-              (org_id, actor_user_id, action, entity_type, entity_id, diff)
+              (org_id, user_id, action, entity_type, entity_id, diff)
             VALUES (${orgRow.id}, ${actor.userId}, 'organization.create',
                     'organization', ${orgRow.id}, ${diff}::jsonb)`,
       );

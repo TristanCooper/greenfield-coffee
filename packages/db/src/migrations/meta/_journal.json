@@ -29,6 +29,13 @@
       "when": 1781894286618,
       "tag": "0003_organizations",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1781902593351,
+      "tag": "0005_lots",
+      "breakpoints": true
     }
   ]
 }

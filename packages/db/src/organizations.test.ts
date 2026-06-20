@@ -7,8 +7,8 @@
 // What we exercise:
 //
 //   1. createOrganization succeeds with valid input → returns { orgId, membershipId,
-//      organization, auditRecorded: false } (audit table doesn't exist yet
-//      in card 0.7).
+//      organization, auditRecorded: true } (audit table is shipped by
+//      card 0.10 / 0.12).
 //   2. createOrganization creates exactly one Organization row + one
 //      Membership row with role='owner'.
 //   3. createOrganization rejects invalid input with CreateOrganizationError.
@@ -110,7 +110,7 @@ const validInput = {
 };
 
 describe('createOrganization — happy path', () => {
-  it('returns orgId, membershipId, organization, auditRecorded=false (pre-0.12)', async () => {
+  it('returns orgId, membershipId, organization, auditRecorded=true (post-0.12)', async () => {
     const userId = await seedUser();
     const result = await createOrganization(validInput, { userId });
 
@@ -121,12 +121,10 @@ describe('createOrganization — happy path', () => {
     expect(result.organization.region).toBe('GB');
     expect(result.organization.baseCurrency).toBe('GBP');
     expect(result.organization.dataResidency).toBe('uk');
-    // audit_event table doesn't exist yet (card 0.12); the
-    // best-effort INSERT swallows the 42P01 and we record
-    // auditRecorded=false so the route handler can surface a
-    // warning to the operator (and to the audit-event dashboard
-    // when it lands).
-    expect(result.auditRecorded).toBe(false);
+    // audit_event table exists (card 0.10 / 0.12 shipped). The INSERT
+    // succeeds and we record auditRecorded=true so the route handler
+    // can surface that to the operator / audit-event dashboard.
+    expect(result.auditRecorded).toBe(true);
 
     createdOrgIds.push(result.orgId);
   });
