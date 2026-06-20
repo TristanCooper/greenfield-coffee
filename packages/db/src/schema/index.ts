@@ -77,7 +77,8 @@ import type {
   auditPackStatus,
 } from './eudr.js';
 import type { eudrHighRiskCountry } from './eudr-high-risk-country.js';
-import type { sku, packaging, recipe } from './operational.js';
+import type { sku, packaging, recipe, recipeComponent } from './operational.js';
+import type { customer } from './customers.js';
 import type {
   priceList,
   priceListEntry,
@@ -236,6 +237,16 @@ export interface Database {
         Row: typeof recipe.$inferSelect;
         Insert: typeof recipe.$inferInsert;
         Update: Partial<typeof recipe.$inferInsert>;
+      };
+      recipe_component: {
+        Row: typeof recipeComponent.$inferSelect;
+        Insert: typeof recipeComponent.$inferInsert;
+        Update: Partial<typeof recipeComponent.$inferInsert>;
+      };
+      customer: {
+        Row: typeof customer.$inferSelect;
+        Insert: typeof customer.$inferInsert;
+        Update: Partial<typeof customer.$inferInsert>;
       };
       price_list: {
         Row: typeof priceList.$inferSelect;
