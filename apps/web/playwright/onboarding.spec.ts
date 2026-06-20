@@ -13,6 +13,7 @@
 // The test re-uses the same auth helper as auth.spec.ts.
 
 import { test, expect } from '@playwright/test';
+import 'dotenv/config';
 import { signInAsTestUser } from './utils/auth';
 
 test.describe('Onboarding — org dashboard', () => {

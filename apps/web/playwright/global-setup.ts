@@ -53,6 +53,7 @@ import { sql } from 'drizzle-orm';
 import { createClient as createSbClient } from '@supabase/supabase-js';
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
+import 'dotenv/config';
 import { unscopedDb } from '@greenfield/db';
 
 // ── Env validation ─────────────────────────────────────────────────────

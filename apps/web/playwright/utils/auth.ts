@@ -43,6 +43,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { Page, BrowserContext } from '@playwright/test';
+import 'dotenv/config';
 
 // Env vars are read lazily inside the helpers, not at
 // module import time. The spec files import this module at

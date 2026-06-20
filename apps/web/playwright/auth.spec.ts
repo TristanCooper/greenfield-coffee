@@ -19,6 +19,7 @@
 //   present and the protected route is reachable.
 
 import { test, expect } from '@playwright/test';
+import 'dotenv/config';
 import { signInAsTestUser } from './utils/auth';
 
 test.describe('Auth — magic-link sign-in', () => {

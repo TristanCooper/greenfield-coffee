@@ -48,6 +48,7 @@
 //   is in the tile image fetch, not the click handling).
 
 import { test, expect } from '@playwright/test';
+import 'dotenv/config';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { signInAsTestUser } from './utils/auth';
