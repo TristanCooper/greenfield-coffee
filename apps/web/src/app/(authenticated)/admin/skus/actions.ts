@@ -50,6 +50,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { requireAdminContext } from '@/lib/admin/server';
+import { flattenZodErrors, parseTags } from '@/lib/admin/form-helpers';
 
 // ── Validation schemas ───────────────────────────────────────────────────
 
@@ -85,27 +86,8 @@ export interface ActionResult {
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────
-
-function parseTags(input: string | undefined): string[] {
-  if (!input) return [];
-  // Tags are comma-separated. Empty tags (consecutive commas) are
-  // dropped. Whitespace trimmed.
-  return input
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0)
-    .slice(0, 32);
-}
-
-function flattenZodErrors(err: z.ZodError): Record<string, string[]> {
-  const out: Record<string, string[]> = {};
-  for (const issue of err.issues) {
-    const key = issue.path.join('.') || '_root';
-    if (!out[key]) out[key] = [];
-    out[key].push(issue.message);
-  }
-  return out;
-}
+// parseTags and flattenZodErrors are imported from
+// @/lib/admin/form-helpers.
 
 // ── createSku ────────────────────────────────────────────────────────────
 
@@ -368,7 +350,7 @@ export async function listSkus(
     const countResult = (await tx`
       SELECT COUNT(*)::text AS count FROM public.sku
        WHERE (${search} = '' OR code ILIKE '%' || ${search} || '%' OR name ILIKE '%' || ${search} || '%')
-    `) as unknown as Array<{ count: string }>;
+    `) as unknown as { count: string }[];
     return {
       rows: rowsResult ?? [],
       total: Number(countResult?.[0]?.count ?? '0'),
@@ -391,6 +373,6 @@ export async function getSku(orgId: string, id: string): Promise<SkuRow | null> 
 }
 
 /** Convenience redirect after a successful create/update — used by forms. */
-export async function redirectToSkuList(): Promise<never> {
+export function redirectToSkuList(): never {
   redirect('/admin/skus');
 }

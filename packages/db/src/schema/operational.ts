@@ -227,13 +227,13 @@ export const recipe = pgTable(
     description: text('description'),
     profileJson: jsonb('profile_json')
       .$type<{
-        seconds: Array<{
+        seconds: {
           t: number;
           bean_temp_c: number | null;
           env_temp_c: number | null;
           gas_pct: number | null;
           fan_pct: number | null;
-        }>;
+        }[];
         notes: string;
       }>()
       .notNull()

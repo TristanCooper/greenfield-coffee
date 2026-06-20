@@ -75,9 +75,14 @@ export async function requireAdminContext(): Promise<AdminContext> {
     redirect('/onboarding');
   }
 
+  // `org` is typed `any` by the Supabase client without a generated
+  // Database generic; narrow it explicitly so the assignment below
+  // doesn't trigger @typescript-eslint/no-unsafe-assignment.
+  const orgRow = org as { name: string };
+
   return {
     orgId: membership.org_id,
-    orgName: org.name,
+    orgName: orgRow.name,
     userId: user.id,
     userEmail: user.email ?? '',
     role: membership.role,

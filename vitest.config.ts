@@ -24,7 +24,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./apps/web/src', import.meta.url)),
     },
   },
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   test: {
     // Global excludes — apply across all projects. Playwright
     // E2E specs (`apps/web/playwright/`) are run by the

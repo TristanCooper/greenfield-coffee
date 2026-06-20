@@ -82,7 +82,10 @@ export function AdminForm(props: AdminFormProps): ReactElement {
       {state?.error ? <FormError message={state.error} /> : null}
 
       <FieldErrorProvider fieldErrors={state?.fieldErrors}>
-        <fieldset disabled={props.disabled || pending} style={{ border: 'none', padding: 0, margin: 0 }}>
+        <fieldset
+          disabled={props.disabled === true || pending}
+          style={{ border: 'none', padding: 0, margin: 0 }}
+        >
           {props.children}
 
           <div style={buttonRowStyle}>
@@ -246,7 +249,7 @@ export function SelectField<T extends string>(props: {
   label: string;
   required?: boolean;
   defaultValue?: string;
-  options: ReadonlyArray<{ value: T; label: string }>;
+  options: readonly { value: T; label: string }[];
   helpText?: string;
 }): ReactElement {
   const error = useFieldError(props.name);
@@ -309,7 +312,7 @@ export function FieldErrorProvider({
   );
 }
 
-function useFieldError(name: string): string | null {
+export function useFieldError(name: string): string | null {
   const { fieldErrors } = useContext(FieldErrorContext);
   if (!fieldErrors) return null;
   const list = fieldErrors[name];

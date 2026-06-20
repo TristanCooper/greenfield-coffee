@@ -63,7 +63,7 @@ export type AdminEntity =
 /** Actions a user can perform on an entity. */
 export type AdminAction = 'read' | 'create' | 'update' | 'delete';
 
-type Matrix = Readonly<Record<AdminEntity, Readonly<Record<AdminAction, ReadonlyArray<MembershipRole>>>>>;
+type Matrix = Readonly<Record<AdminEntity, Readonly<Record<AdminAction, readonly MembershipRole[]>>>>;
 
 /**
  * The permission matrix. Reading: for each (entity, action), which
