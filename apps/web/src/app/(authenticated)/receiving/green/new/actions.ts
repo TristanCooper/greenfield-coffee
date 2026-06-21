@@ -67,7 +67,7 @@ export async function createGreenLotAndFriends(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user || user.id !== input.userId) {
+  if (user?.id !== input.userId) {
     return { ok: false, error: 'Not authenticated' };
   }
   if (!SUBMIT_ROLES.has(input.userRole)) {

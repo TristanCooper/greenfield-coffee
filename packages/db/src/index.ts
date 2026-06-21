@@ -91,5 +91,37 @@ export {
   type AuditEvent,
   type NewAuditEvent,
 } from './schema/audit.js';
+export {
+  type Sku,
+  type NewSku,
+  type Packaging,
+  type NewPackaging,
+  type Recipe,
+  type NewRecipe,
+  type RecipeComponent,
+  type NewRecipeComponent,
+} from './schema/operational.js';
+export {
+  type PriceList,
+  type NewPriceList,
+  type PriceListEntry,
+  type NewPriceListEntry,
+  type PriceListKind,
+  type PriceListVatMode,
+} from './schema/price-lists.js';
+export {
+  type Supplier,
+  type NewSupplier,
+} from './schema/suppliers.js';
+export {
+  type Producer,
+  type NewProducer,
+  type ProducerVerificationOverride,
+  type NewProducerVerificationOverride,
+} from './schema/producers.js';
+export {
+  type Customer,
+  type NewCustomer,
+} from './schema/customers.js';
 export { type User, type NewUser } from './schema/users.js';
 export const PACKAGE_NAME = '@greenfield/db' as const;

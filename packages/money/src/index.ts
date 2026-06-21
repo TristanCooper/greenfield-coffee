@@ -303,7 +303,7 @@ export interface CascadeInputs {
    * `vat_recoverable: true` events are EXCLUDED from the
    * cascade — they're a pass-through (B2B reverse-charge).
    */
-  landedEvents: ReadonlyArray<{
+  landedEvents: readonly {
     id: string;
     kind: string;
     amountCents: bigint;
@@ -311,18 +311,18 @@ export interface CascadeInputs {
     fxSnapshotCentsPerBase: bigint | null;
     vatRecoverable: boolean;
     occurredAt: Date;
-  }>;
+  }[];
   /**
    * Roast batches that consumed the green lot. `roastedLotId`
    * links to a roasted_lot (the post-roast pre-pack product).
    * `roastedWeightKg` is the green weight in (not the
    * roasted weight out — the cascade is green-weight based).
    */
-  roastBatches: ReadonlyArray<{
+  roastBatches: readonly {
     id: string;
     roastedLotId: string;
     greenWeightInKg: number;
-  }>;
+  }[];
   /**
    * The packaged lots derived from the roasted lots above
    * (a pack event consumes one or more roasted_lots and
@@ -330,12 +330,12 @@ export interface CascadeInputs {
    * retail units in the packaged_lot (a 12-bag case has
    * count=12; a 250g valve bag has count=1).
    */
-  packagedLots: ReadonlyArray<{
+  packagedLots: readonly {
     id: string;
     roastBatchId: string;
     weightKg: number;
     count: number;
-  }>;
+  }[];
   /**
    * The org's base currency. The cascade returns amounts
    * in this currency's minor units.

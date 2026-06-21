@@ -227,13 +227,13 @@ export const recipe = pgTable(
     description: text('description'),
     profileJson: jsonb('profile_json')
       .$type<{
-        seconds: Array<{
+        seconds: {
           t: number;
           bean_temp_c: number | null;
           env_temp_c: number | null;
           gas_pct: number | null;
           fan_pct: number | null;
-        }>;
+        }[];
         notes: string;
       }>()
       .notNull()
@@ -277,3 +277,75 @@ export const recipe = pgTable(
 
 export type Recipe = typeof recipe.$inferSelect;
 export type NewRecipe = typeof recipe.$inferInsert;
+
+// ── recipe_component ─────────────────────────────────────────────────────
+//
+// Card 0.16 — the recipe's blend of green lots by percentage.
+//
+// The card body requires the Recipe admin form to "list of green-lot
+// components with % of blend; validates total = 100% (within
+// rounding)". A recipe's component list is the canonical blend spec:
+// when a roaster pulls a green lot for a batch, they consult the
+// recipe's components to know what fraction of the batch should be
+// which lot. (The actual batch is `roast_batch_component`, card 0.10,
+// which records the executed weights — not the spec.)
+//
+// `percent_bps` is integer basis points (1 bps = 0.01%). 10000 bps =
+// 100%. The form's "total must equal 100%" check is
+// `sum(percent_bps) === 10000` (with a small rounding tolerance to
+// allow e.g. 3333 + 3333 + 3334 = 10000).
+//
+// UNIQUE (recipe_id, green_lot_id) — a green lot cannot appear twice
+// in the same recipe's blend.
+//
+// FK to green_lot uses ON DELETE RESTRICT — deleting a green lot is
+// blocked if it's referenced by a recipe_component. The recipe admin
+// surfaces the reference in the delete-confirmation panel.
+//
+// Forward reference note: `green_lot` lives in schema/lots.ts (card
+// 0.10). As with the existing forward references in this file, the
+// TS column is a bare `uuid` and the SQL FK lands in the migration.
+
+import { greenLot } from './lots.js';
+
+export const recipeComponent = pgTable(
+  'recipe_component',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    orgId: uuid('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'restrict' }),
+    recipeId: uuid('recipe_id')
+      .notNull()
+      // FK added in 0009_admin_ui.sql — ON DELETE CASCADE so deleting
+      // a recipe removes its blend lines.
+      .references(() => recipe.id, { onDelete: 'cascade' }),
+    greenLotId: uuid('green_lot_id')
+      .notNull()
+      // FK added in 0009_admin_ui.sql — ON DELETE RESTRICT so a
+      // green lot referenced by a recipe cannot be deleted.
+      .references(() => greenLot.id, { onDelete: 'restrict' }),
+    percentBps: integer('percent_bps').notNull(),
+    notes: text('notes'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    recipeLotUnique: unique('recipe_component_recipe_lot_unique').on(
+      table.recipeId,
+      table.greenLotId,
+    ),
+    orgIdIdx: index('recipe_component_org_id_idx').on(table.orgId),
+    greenLotIdIdx: index('recipe_component_green_lot_id_idx').on(
+      table.greenLotId,
+    ),
+    percentBpsRange: check(
+      'recipe_component_percent_bps_range_check',
+      sql`${table.percentBps} >= 0 AND ${table.percentBps} <= 10000`,
+    ),
+  }),
+);
+
+export type RecipeComponent = typeof recipeComponent.$inferSelect;
+export type NewRecipeComponent = typeof recipeComponent.$inferInsert;
